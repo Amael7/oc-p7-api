@@ -18,7 +18,7 @@ class Product
     #[ORM\Column(type: 'string', length: 255)]
     private $name;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'text')]
     private $description;
 
     #[ORM\Column(type: 'datetime')]
@@ -51,7 +51,7 @@ class Product
     #[ORM\Column(type: 'float')]
     private $das;
 
-    #[ORM\OneToMany(mappedBy: 'product', targetEntity: Configuration::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: Configuration::class, orphanRemoval: true, cascade:['persist'])]
     private $configurations;
 
     #[ORM\Column(type: 'string', length: 255)]

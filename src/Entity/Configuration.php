@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ConfigurationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ConfigurationRepository::class)]
@@ -25,6 +27,14 @@ class Configuration
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'configurations')]
     #[ORM\JoinColumn(nullable: false)]
     private $product;
+
+    #[ORM\OneToMany(mappedBy: 'configuration', targetEntity: Image::class, orphanRemoval: true, cascade:['persist'])]
+    private $images;
+
+    public function __construct()
+    {
+        $this->images = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -75,6 +85,36 @@ class Configuration
     public function setProduct(?Product $product): self
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Image>
+     */
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function addImage(Image $image): self
+    {
+        if (!$this->images->contains($image)) {
+            $this->images[] = $image;
+            $image->setConfiguration($this);
+        }
+
+        return $this;
+    }
+
+    public function removeImage(Image $image): self
+    {
+        if ($this->images->removeElement($image)) {
+            // set the owning side to null (unless already changed)
+            if ($image->getConfiguration() === $this) {
+                $image->setConfiguration(null);
+            }
+        }
 
         return $this;
     }
