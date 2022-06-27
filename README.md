@@ -17,7 +17,7 @@ Nom du Projet : Créez un web service exposant une API
 
 1.Clonez le repo :
       
-        git clone https://github.com/Amael7/oc-p7-api.git
+        git clone git@github.com:Amael7/oc-p7-api.git
 
 2.Modifier le .env avec vos informations.
 
