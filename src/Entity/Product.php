@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProductRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
@@ -48,6 +50,14 @@ class Product
 
     #[ORM\Column(type: 'float')]
     private $das;
+
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: Configuration::class, orphanRemoval: true)]
+    private $configurations;
+
+    public function __construct()
+    {
+        $this->configurations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -194,6 +204,36 @@ class Product
     public function setDas(float $das): self
     {
         $this->das = $das;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Configuration>
+     */
+    public function getConfigurations(): Collection
+    {
+        return $this->configurations;
+    }
+
+    public function addConfiguration(Configuration $configuration): self
+    {
+        if (!$this->configurations->contains($configuration)) {
+            $this->configurations[] = $configuration;
+            $configuration->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConfiguration(Configuration $configuration): self
+    {
+        if ($this->configurations->removeElement($configuration)) {
+            // set the owning side to null (unless already changed)
+            if ($configuration->getProduct() === $this) {
+                $configuration->setProduct(null);
+            }
+        }
 
         return $this;
     }
