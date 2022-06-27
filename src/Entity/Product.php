@@ -21,7 +21,7 @@ class Product
     #[ORM\Column(type: 'string', length: 255)]
     private $description;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     #[ORM\Column(type: 'float')]
@@ -53,6 +53,9 @@ class Product
 
     #[ORM\OneToMany(mappedBy: 'product', targetEntity: Configuration::class, orphanRemoval: true)]
     private $configurations;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private $manufacturer;
 
     public function __construct()
     {
@@ -88,12 +91,12 @@ class Product
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    public function setCreatedAt(\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -234,6 +237,18 @@ class Product
                 $configuration->setProduct(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getManufacturer(): ?string
+    {
+        return $this->manufacturer;
+    }
+
+    public function setManufacturer(string $manufacturer): self
+    {
+        $this->manufacturer = $manufacturer;
 
         return $this;
     }
