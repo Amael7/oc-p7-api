@@ -14,7 +14,6 @@ class ProductFixtures extends Fixture
     {
 
         $faker = \Faker\Factory::create('fr_FR'); // Set Faker
-        $date = $faker->dateTime(); // Set Date
 
         // Product Settings Start
             $manufacturers = [
@@ -48,6 +47,8 @@ class ProductFixtures extends Fixture
         // Creation of some products
         for ($i = 0; $i < 70; $i++) {
             $product = new Product;
+            $date = $faker->dateTime(); // Set Date
+
             $product->setName($faker->word())
                     ->setDescription($faker->paragraph())
                     ->setCreatedAt($date)
