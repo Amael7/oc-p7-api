@@ -34,6 +34,7 @@ class ClientFixtures extends Fixture
                 ->setRoles(['ROLE_USER']);
 
         $manager->persist($user);
+        $this->addReference('user', $user);
 
         // Creation of some clients
         for ($i = 0; $i < 30; ++$i) {
@@ -44,8 +45,8 @@ class ClientFixtures extends Fixture
               ->setPassword('password')
               // ->setPassword($this->encoder->encodePassword($client, 'password'))
               ->setRoles(['ROLE_USER']);
-
           $manager->persist($client);
+          $this->addReference('client'.$i, $client);
         }
 
       $manager->flush();
