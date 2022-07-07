@@ -7,6 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
+
 #[ORM\Entity(repositoryClass: ConfigurationRepository::class)]
 class Configuration
 {
@@ -16,12 +19,18 @@ class Configuration
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max:255)]
     private $color;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 1, max:255)]
     private $capacity;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
+    #[Assert\Positive]
     private $price;
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'configurations')]
