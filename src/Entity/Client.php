@@ -6,12 +6,14 @@ use App\Repository\ClientRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
-class Client
+class Client implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,7 +25,7 @@ class Client
     #[Assert\Length(min: 3, max:255)]
     private $company;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max:255)]
     #[Assert\Email]
@@ -39,7 +41,7 @@ class Client
     #[Assert\NotNull]
     private $createdAt;
 
-    #[ORM\Column(type: 'array')]
+    #[ORM\Column(type: 'json')]
     private $roles = [];
 
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients')]
@@ -79,6 +81,10 @@ class Client
         return $this;
     }
 
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     * @return string the hashed password for this user
+     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -103,9 +109,16 @@ class Client
         return $this;
     }
 
-    public function getRoles(): ?array
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
     {
-        return $this->roles;
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
     }
 
     public function setRoles(array $roles): self
@@ -140,5 +153,35 @@ class Client
         }
 
         return $this;
+    }
+
+    /**
+     * The public representation of the user (e.g. a username, an email address, etc.)
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 }

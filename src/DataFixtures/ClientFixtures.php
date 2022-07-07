@@ -5,12 +5,19 @@ namespace App\DataFixtures;
 use App\Entity\Client;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class ClientFixtures extends Fixture
 {
+    private UserPasswordHasherInterface $passwordHasher;
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    {
+      $this->passwordHasher = $passwordHasher;
+    }
+
     public function load(ObjectManager $manager): void
     {
-
         $faker = \Faker\Factory::create('fr_FR'); // Set Faker
 
         // Creation of admin client  
@@ -18,8 +25,7 @@ class ClientFixtures extends Fixture
         $admin->setEmail('admin@bilemo.com')
                 ->setCreatedAt(new \DateTime())
                 ->setCompany('BileMo')
-                ->setPassword('admin')
-                // ->setPassword($this->encoder->encodePassword($admin, 'admin'))
+                ->setPassword($this->passwordHasher->hashPassword($admin, 'admin1234'))
                 ->setRoles(['ROLE_ADMIN']);
 
         $manager->persist($admin);
@@ -29,8 +35,7 @@ class ClientFixtures extends Fixture
         $user->setEmail('user@bilemo.com')
                 ->setCreatedAt(new \DateTime())
                 ->setCompany('BileMo')
-                ->setPassword('user')
-                // ->setPassword($this->encoder->encodePassword($user, 'user'))
+                ->setPassword($this->passwordHasher->hashPassword($user, 'user1234'))
                 ->setRoles(['ROLE_USER']);
 
         $manager->persist($user);
@@ -42,8 +47,7 @@ class ClientFixtures extends Fixture
           $client->setEmail($faker->companyEmail())
               ->setCreatedAt($faker->dateTime())
               ->setCompany($faker->company())
-              ->setPassword('password')
-              // ->setPassword($this->encoder->encodePassword($client, 'password'))
+              ->setPassword($this->passwordHasher->hashPassword($client, 'client1234'))
               ->setRoles(['ROLE_USER']);
           $manager->persist($client);
           $this->addReference('client'.$i, $client);
