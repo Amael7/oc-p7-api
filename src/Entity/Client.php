@@ -7,6 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
+
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client
 {
@@ -16,15 +19,24 @@ class Client
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max:255)]
     private $company;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max:255)]
+    #[Assert\Email]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 6, max:255)]
+    #[Assert\NotCompromisedPassword]
     private $password;
 
     #[ORM\Column(type: 'datetime')]
+    #[Assert\NotNull]
     private $createdAt;
 
     #[ORM\Column(type: 'array')]
