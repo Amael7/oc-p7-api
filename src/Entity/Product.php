@@ -7,6 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
+
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
 {
@@ -16,39 +19,58 @@ class Product
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max:255)]
     private $name;
 
     #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2)]
     private $description;
 
     #[ORM\Column(type: 'datetime')]
+    #[Assert\NotNull]
     private $createdAt;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
     private $screenSize;
 
     #[ORM\Column(type: 'boolean')]
+    #[Assert\NotNull]
     private $camera;
 
     #[ORM\Column(type: 'boolean')]
+    #[Assert\NotNull]
     private $bluetooth;
 
     #[ORM\Column(type: 'boolean')]
+    #[Assert\NotNull]
     private $wifi;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
+    #[Assert\Positive]
     private $length;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
+    #[Assert\Positive]
     private $width;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
+    #[Assert\Positive]
     private $height;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
+    #[Assert\Positive]
     private $weight;
 
     #[ORM\Column(type: 'float')]
+    #[Assert\NotNull]
+    #[Assert\Positive]
     private $das;
 
     #[ORM\OneToMany(mappedBy: 'product', targetEntity: Configuration::class, orphanRemoval: true, cascade:['persist'])]
