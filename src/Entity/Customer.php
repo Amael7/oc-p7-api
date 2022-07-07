@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\CustomerRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\CustomerRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
-
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 class Customer
@@ -38,6 +38,7 @@ class Customer
     #[Assert\NotNull]
     private $createdAt;
 
+    #[Ignore]
     #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers')]
     private $clients;
 
