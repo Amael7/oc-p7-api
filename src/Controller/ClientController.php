@@ -8,7 +8,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ClientController extends AbstractController
 {
-    #[Route('/client', name: 'app_client')]
+    #[Route('/api/clients', name: 'clients', methods: ['GET'])]
     public function index(): JsonResponse
     {
         return new JsonResponse([
