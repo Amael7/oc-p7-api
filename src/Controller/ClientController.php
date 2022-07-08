@@ -14,7 +14,6 @@ class ClientController extends AbstractController
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
     public function index(ClientRepository $clientRepository, SerializerInterface $serializer): JsonResponse
     {
-
         $clientsList = $clientRepository->findAll();
         $jsonClientsList = $serializer->serialize($clientsList, 'json');
         return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);
