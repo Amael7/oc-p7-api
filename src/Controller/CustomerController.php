@@ -79,4 +79,12 @@ class CustomerController extends AbstractController
             $em->flush();
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
+
+    #[Route('/api/customers/{id}', name: 'customerDestroy', methods: ['DELETE'])]
+        public function destroy(Customer $customer, EntityManagerInterface $em): JsonResponse 
+            {
+                $em->remove($customer);
+                $em->flush();
+                return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
+            }
 }
