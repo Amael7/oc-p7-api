@@ -2,13 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\CustomerRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeZone;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\CustomerRepository;
+use Doctrine\Common\Collections\Collection;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
-
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 class Customer
@@ -16,33 +17,40 @@ class Customer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['getClients'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max:255)]
     #[Assert\Email]
+    #[Groups(['getClients'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
+    #[Groups(['getClients'])]
     private $lastName;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
+    #[Groups(['getClients'])]
     private $firstName;
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull]
+    #[Groups(['getClients'])]
     private $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers')]
+    #[ORM\JoinColumn(onDelete:"CASCADE")]
     private $clients;
 
     public function __construct()
     {
+        $this->createdAt = new \DateTime('now', new DateTimeZone('Europe/Paris'));
         $this->clients = new ArrayCollection();
     }
 

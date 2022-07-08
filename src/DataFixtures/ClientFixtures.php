@@ -23,7 +23,7 @@ class ClientFixtures extends Fixture
         // Creation of admin client  
         $admin = new Client();
         $admin->setEmail('admin@bilemo.com')
-                ->setCreatedAt(new \DateTime())
+                ->setCreatedAt($faker->dateTime())
                 ->setCompany('BileMo')
                 ->setPassword($this->passwordHasher->hashPassword($admin, 'admin1234'))
                 ->setRoles(['ROLE_ADMIN']);
@@ -33,7 +33,7 @@ class ClientFixtures extends Fixture
         // Creation of user client
         $user = new Client();
         $user->setEmail('user@bilemo.com')
-                ->setCreatedAt(new \DateTime())
+                ->setCreatedAt($faker->dateTime())
                 ->setCompany('BileMo')
                 ->setPassword($this->passwordHasher->hashPassword($user, 'user1234'))
                 ->setRoles(['ROLE_USER']);

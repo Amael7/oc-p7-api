@@ -2,14 +2,17 @@
 
 namespace App\Entity;
 
-use App\Repository\ClientRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeZone;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
+use App\Repository\ClientRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
@@ -18,17 +21,20 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['getClients'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
+    #[Groups(['getClients'])]
     private $company;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max:255)]
     #[Assert\Email]
+    #[Groups(['getClients'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -39,16 +45,21 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull]
+    #[Groups(['getClients'])]
     private $createdAt;
 
     #[ORM\Column(type: 'json')]
+    #[Groups(['getClients'])]
     private $roles = [];
-
+    
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients')]
+    #[Groups(['getClients'])]
     private $customers;
 
     public function __construct()
     {
+        $this->createdAt = new \DateTime('now', new DateTimeZone('Europe/Paris'));
+        $this->roles = ['ROLE_USER'];
         $this->customers = new ArrayCollection();
     }
 
