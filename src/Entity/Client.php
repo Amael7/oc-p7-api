@@ -32,7 +32,7 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email]
     private $email;
 
-    #[Ignore]
+    // #[Ignore]
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 6, max:255)]
@@ -46,7 +46,6 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json')]
     private $roles = [];
     
-    #[Ignore]
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients')]
     private $customers;
 

@@ -38,7 +38,6 @@ class Customer
     #[Assert\NotNull]
     private $createdAt;
 
-    #[Ignore]
     #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers')]
     private $clients;
 
