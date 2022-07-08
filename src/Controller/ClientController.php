@@ -48,12 +48,12 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
-    public function update(Request $request, SerializerInterface $serializer, Client $currentclient, EntityManagerInterface $em): JsonResponse 
+    public function update(Request $request, SerializerInterface $serializer, Client $currentClient, EntityManagerInterface $em): JsonResponse 
         {
             $updatedClient = $serializer->deserialize($request->getContent(), 
                     Client::class, 
                     'json', 
-                    [AbstractNormalizer::OBJECT_TO_POPULATE => $currentclient]);
+                    [AbstractNormalizer::OBJECT_TO_POPULATE => $currentClient]);
             $em->persist($updatedClient);
             $em->flush();
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
