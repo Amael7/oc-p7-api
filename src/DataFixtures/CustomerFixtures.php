@@ -33,7 +33,7 @@ class CustomerFixtures extends Fixture
                 ->setFirstname($faker->firstName())
                 ->setLastname($faker->lastName());
             for ($j = 1; $j < mt_rand(1, 3); ++$j) {
-                $customer->addClient($this->getReference('user'));
+                $customer->setClient($this->getReference('user'));
             }
 
             $manager->persist($customer);
