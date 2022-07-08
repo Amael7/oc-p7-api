@@ -21,20 +21,20 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['getClients'])]
+    #[Groups(['getClientDetails'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
-    #[Groups(['getClients'])]
+    #[Groups(['getClientDetails'])]
     private $company;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max:255)]
     #[Assert\Email]
-    #[Groups(['getClients'])]
+    #[Groups(['getClientDetails'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -45,15 +45,15 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull]
-    #[Groups(['getClients'])]
+    #[Groups(['getClientDetails'])]
     private $createdAt;
 
     #[ORM\Column(type: 'json')]
-    #[Groups(['getClients'])]
+    #[Groups(['getClientDetails'])]
     private $roles = [];
     
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients')]
-    #[Groups(['getClients'])]
+    #[Groups(['getCustomersFromClient'])]
     private $customers;
 
     public function __construct()

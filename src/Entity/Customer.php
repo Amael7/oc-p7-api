@@ -17,35 +17,36 @@ class Customer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['getClients'])]
+    #[Groups(['getCustomerDetails'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max:255)]
     #[Assert\Email]
-    #[Groups(['getClients'])]
+    #[Groups(['getCustomerDetails'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
-    #[Groups(['getClients'])]
+    #[Groups(['getCustomerDetails'])]
     private $lastName;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
-    #[Groups(['getClients'])]
+    #[Groups(['getCustomerDetails'])]
     private $firstName;
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull]
-    #[Groups(['getClients'])]
+    #[Groups(['getCustomerDetails'])]
     private $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers')]
     #[ORM\JoinColumn(onDelete:"CASCADE")]
+    #[Groups(['getClientsFromCustomer'])]
     private $clients;
 
     public function __construct()

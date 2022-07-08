@@ -21,14 +21,14 @@ class ClientController extends AbstractController
     public function index(ClientRepository $clientRepository, SerializerInterface $serializer): JsonResponse
         {
             $clientsList = $clientRepository->findAll();
-            $jsonClientsList = $serializer->serialize($clientsList, 'json', ['groups' => 'getClients']);
+            $jsonClientsList = $serializer->serialize($clientsList, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
             return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
         }
 
     #[Route('/api/clients/{id}', name: 'clientShow', methods: ['GET'])]
     public function show(Client $client, SerializerInterface $serializer): JsonResponse
         {
-            $jsonClient = $serializer->serialize($client, 'json', ['groups' => 'getClients']);
+            $jsonClient = $serializer->serialize($client, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
             return new JsonResponse($jsonClient, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
 
@@ -46,7 +46,7 @@ class ClientController extends AbstractController
             $em->persist($client);
             $em->flush();
 
-            $jsonClient = $serializer->serialize($client, 'json', ['groups' => 'getClients']);
+            $jsonClient = $serializer->serialize($client, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
             
             $location = $urlGenerator->generate('clientShow', ['id' => $client->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
