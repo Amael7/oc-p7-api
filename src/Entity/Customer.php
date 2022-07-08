@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use DateTimeZone;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CustomerRepository;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -48,6 +49,7 @@ class Customer
 
     public function __construct()
     {
+        $this->createdAt = new \DateTime('now', new DateTimeZone('Europe/Paris'));
         $this->clients = new ArrayCollection();
     }
 
