@@ -44,7 +44,7 @@ class Customer
     #[Groups(['getCustomerDetails'])]
     private $createdAt;
 
-    #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers')]
+    #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers', cascade:['persist'])]
     #[ORM\JoinColumn(onDelete:"CASCADE")]
     #[Groups(['getClientsFromCustomer'])]
     private $clients;
@@ -128,6 +128,13 @@ class Customer
     public function removeClient(Client $client): self
     {
         $this->clients->removeElement($client);
+
+        return $this;
+    }
+
+    public function setClient(?Client $client): self
+    {
+        $this->clients[] = $client;
 
         return $this;
     }

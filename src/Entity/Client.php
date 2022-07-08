@@ -52,7 +52,7 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['getClientDetails'])]
     private $roles = [];
     
-    #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients')]
+    #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients', cascade:['persist'])]
     #[Groups(['getCustomersFromClient'])]
     private $customers;
 
