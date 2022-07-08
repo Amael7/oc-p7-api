@@ -35,26 +35,21 @@ class CustomerController extends AbstractController
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ClientRepository $clientRepository): JsonResponse 
         {
             $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
-
             // Récupération de l'ensemble des données envoyées sous forme de tableau
             $content = $request->toArray();
-
             // Récupération de l'idAuthor. S'il n'est pas défini, alors on met -1 par défaut.
             $idClients = $content['idClients'] ?? null;
-
             if (isset($idClients)) {
                 foreach($idClients as $idClient) {
                     $customer->setClient($clientRepository->find($idClient));
                 }
             }
-
             $em->persist($customer);
             $em->flush();
-
             $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
-            
             $location = $urlGenerator->generate('customerShow', ['id' => $customer->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-
             return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
+
+
 }

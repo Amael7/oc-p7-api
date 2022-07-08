@@ -36,20 +36,14 @@ class ClientController extends AbstractController
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher): JsonResponse 
         {
             $client = $serializer->deserialize($request->getContent(), Client::class, 'json');
-
             // Récupération de l'ensemble des données envoyées sous forme de tableau
             $content = $request->toArray();
-
             $password = $content['password'];
             $client->setPassword($passwordHasher->hashPassword($client, $password));
-
             $em->persist($client);
             $em->flush();
-
             $jsonClient = $serializer->serialize($client, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
-            
             $location = $urlGenerator->generate('clientShow', ['id' => $client->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-
             return new JsonResponse($jsonClient, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
 
@@ -60,10 +54,8 @@ class ClientController extends AbstractController
                     Client::class, 
                     'json', 
                     [AbstractNormalizer::OBJECT_TO_POPULATE => $currentclient]);
-            
             $em->persist($updatedClient);
             $em->flush();
-
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
@@ -72,7 +64,6 @@ class ClientController extends AbstractController
         {
             $em->remove($client);
             $em->flush();
-
             return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
         }
 }
