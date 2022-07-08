@@ -45,6 +45,7 @@ class Customer
     private $createdAt;
 
     #[ORM\ManyToMany(targetEntity: Client::class, inversedBy: 'customers')]
+    #[ORM\JoinColumn(onDelete:"CASCADE")]
     private $clients;
 
     public function __construct()
