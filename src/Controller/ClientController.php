@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class ClientController extends AbstractController
 {
@@ -31,9 +32,16 @@ class ClientController extends AbstractController
     }
 
     #[Route('/api/clients', name:"clientCreate", methods: ['POST'])]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse 
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher): JsonResponse 
     {
         $client = $serializer->deserialize($request->getContent(), Client::class, 'json');
+
+        // Récupération de l'ensemble des données envoyées sous forme de tableau
+        $content = $request->toArray();
+
+        $password = $content['password'];
+        $client->setPassword($passwordHasher->hashPassword($client, $password));
+
         $em->persist($client);
         $em->flush();
 
