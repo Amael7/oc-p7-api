@@ -6,7 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ClientRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -19,20 +19,22 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['getClients'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
+    #[Groups(['getClients'])]
     private $company;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max:255)]
     #[Assert\Email]
+    #[Groups(['getClients'])]
     private $email;
 
-    #[Ignore]
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 6, max:255)]
@@ -41,12 +43,15 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull]
+    #[Groups(['getClients'])]
     private $createdAt;
 
     #[ORM\Column(type: 'json')]
+    #[Groups(['getClients'])]
     private $roles = [];
     
     #[ORM\ManyToMany(targetEntity: Customer::class, mappedBy: 'clients')]
+    #[Groups(['getClients'])]
     private $customers;
 
     public function __construct()

@@ -16,7 +16,7 @@ class ClientController extends AbstractController
     public function index(ClientRepository $clientRepository, SerializerInterface $serializer): JsonResponse
     {
         $clientsList = $clientRepository->findAll();
-        $jsonClientsList = $serializer->serialize($clientsList, 'json');
+        $jsonClientsList = $serializer->serialize($clientsList, 'json', ['groups' => 'getClients']);
         return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
     }
 
