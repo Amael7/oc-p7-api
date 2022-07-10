@@ -8,6 +8,7 @@ use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\Collection;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
@@ -17,68 +18,83 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['getProductDetails'])]
     private $id;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['getProductDetails'])]
+    private $manufacturer;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
+    #[Groups(['getProductDetails'])]
     private $name;
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2)]
+    #[Groups(['getProductDetails'])]
     private $description;
 
     #[ORM\Column(type: 'datetime')]
     #[Assert\NotNull]
+    #[Groups(['getProductDetails'])]
     private $createdAt;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
+    #[Groups(['getProductDetails'])]
     private $screenSize;
 
     #[ORM\Column(type: 'boolean')]
     #[Assert\NotNull]
+    #[Groups(['getProductDetails'])]
     private $camera;
 
     #[ORM\Column(type: 'boolean')]
     #[Assert\NotNull]
+    #[Groups(['getProductDetails'])]
     private $bluetooth;
 
     #[ORM\Column(type: 'boolean')]
     #[Assert\NotNull]
+    #[Groups(['getProductDetails'])]
     private $wifi;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Positive]
+    #[Groups(['getProductDetails'])]
     private $length;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Positive]
+    #[Groups(['getProductDetails'])]
     private $width;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Positive]
+    #[Groups(['getProductDetails'])]
     private $height;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Positive]
+    #[Groups(['getProductDetails'])]
     private $weight;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Positive]
+    #[Groups(['getProductDetails'])]
     private $das;
 
     #[ORM\OneToMany(mappedBy: 'product', targetEntity: Configuration::class, orphanRemoval: true, cascade:['persist'])]
+    #[Groups(['getConfigurationFromProduct'])]
     private $configurations;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private $manufacturer;
 
     public function __construct()
     {
@@ -89,6 +105,18 @@ class Product
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getManufacturer(): ?string
+    {
+        return $this->manufacturer;
+    }
+
+    public function setManufacturer(string $manufacturer): self
+    {
+        $this->manufacturer = $manufacturer;
+
+        return $this;
     }
 
     public function getName(): ?string
@@ -261,18 +289,6 @@ class Product
                 $configuration->setProduct(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getManufacturer(): ?string
-    {
-        return $this->manufacturer;
-    }
-
-    public function setManufacturer(string $manufacturer): self
-    {
-        $this->manufacturer = $manufacturer;
 
         return $this;
     }
