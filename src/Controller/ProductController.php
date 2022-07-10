@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Repository\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,5 +26,13 @@ class ProductController extends AbstractController
             {
                 $jsonProduct = $serializer->serialize($product, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
                 return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
+            }
+
+    #[Route('/api/products/{id}', name: 'productDestroy', methods: ['DELETE'])]
+        public function destroy(Product $product, EntityManagerInterface $em): JsonResponse 
+            {
+                $em->remove($product);
+                $em->flush();
+                return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
             }
 }
