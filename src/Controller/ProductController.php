@@ -7,12 +7,14 @@ use App\Entity\Product;
 use App\Entity\Configuration;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\ConfigurationRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProductController extends AbstractController
@@ -42,6 +44,34 @@ class ProductController extends AbstractController
                 $jsonproduct = $serializer->serialize($product, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
                 $location = $urlGenerator->generate('productShow', ['id' => $product->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
                 return new JsonResponse($jsonproduct, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
+            }
+
+    #[Route('/api/products/{id}', name: 'productUpdate', methods: ['PUT'])]
+        public function update(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, ConfigurationRepository $configurationRepository): JsonResponse 
+            {
+                $updatedProduct = $serializer->deserialize($request->getContent(), 
+                        Product::class, 
+                        'json', 
+                        [AbstractNormalizer::OBJECT_TO_POPULATE => $currentProduct]);
+                // // Récupération de l'ensemble des données envoyées sous forme de tableau
+                // $content = $request->toArray();
+                // // Récupération de l'idConfigurations pour lier des configurations. S'il n'est pas défini, alors on null par défaut.
+                // $idConfigurations = $content['idConfigurations'] ?? null;
+                // if (isset($idConfigurations)) {
+                //     foreach($idConfigurations as $idConfiguration) {
+                //         $updatedProduct->setConfiguration($configurationRepository->find($idConfiguration));
+                //     }
+                // }
+                // // Récupération de removeIdConfigurations pour supprimer la liaison avec des configurations. S'il n'est pas défini, alors on null par défaut.
+                // $removeIdConfigurations = $content['removeIdConfigurations'] ?? null;
+                // if (isset($removeIdConfigurations)) {
+                //     foreach($removeIdConfigurations as $removeIdConfiguration) {
+                //         $updatedProduct->removeConfiguration($configurationRepository->find($removeIdConfiguration));
+                //     }
+                // }
+                $em->persist($updatedProduct);
+                $em->flush();
+                return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
             }
 
     #[Route('/api/products/{id}', name: 'productDestroy', methods: ['DELETE'])]
