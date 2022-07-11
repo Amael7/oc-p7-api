@@ -51,8 +51,8 @@ class CustomerController extends AbstractController
             // On vérifie les erreurs
             $errors = $validator->validate($customer);
             if ($errors->count() > 0) {
-                throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
-                // return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
 
             $em->persist($customer);
@@ -63,12 +63,20 @@ class CustomerController extends AbstractController
         }
 
     #[Route('/api/customers/{id}', name: 'customerUpdate', methods: ['PUT'])]
-    public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository): JsonResponse 
+    public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
         {
             $updatedCustomer = $serializer->deserialize($request->getContent(), 
                     Customer::class, 
                     'json', 
                     [AbstractNormalizer::OBJECT_TO_POPULATE => $currentCustomer]);
+
+            // On vérifie les erreurs
+            $errors = $validator->validate($updatedCustomer);
+            if ($errors->count() > 0) {
+                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            }
+
             // Récupération de l'ensemble des données envoyées sous forme de tableau
             $content = $request->toArray();
             // Récupération de l'idClients pour lier des clients. S'il n'est pas défini, alors on null par défaut.

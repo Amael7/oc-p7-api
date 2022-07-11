@@ -44,8 +44,8 @@ class ProductController extends AbstractController
                 // On vérifie les erreurs
                 $errors = $validator->validate($product);
                 if ($errors->count() > 0) {
-                    throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
-                    // return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+                    // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                    return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
                 }
 
                 $em->persist($product);
@@ -56,12 +56,18 @@ class ProductController extends AbstractController
             }
 
     #[Route('/api/products/{id}', name: 'productUpdate', methods: ['PUT'])]
-        public function update(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, ConfigurationRepository $configurationRepository): JsonResponse 
+        public function update(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, ValidatorInterface $validator): JsonResponse 
             {
                 $updatedProduct = $serializer->deserialize($request->getContent(), 
                         Product::class, 
                         'json', 
                         [AbstractNormalizer::OBJECT_TO_POPULATE => $currentProduct]);
+                // On vérifie les erreurs
+                $errors = $validator->validate($updatedProduct);
+                if ($errors->count() > 0) {
+                    // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                    return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+                }
                 $em->persist($updatedProduct);
                 $em->flush();
                 return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
