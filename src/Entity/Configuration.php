@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\ConfigurationRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ConfigurationRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
@@ -16,28 +17,34 @@ class Configuration
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['getConfigurationDetails'])]
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max:255)]
+    #[Groups(['getConfigurationDetails'])]
     private $color;
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(min: 1, max:255)]
+    #[Groups(['getConfigurationDetails'])]
     private $capacity;
 
     #[ORM\Column(type: 'float')]
     #[Assert\NotNull]
     #[Assert\Positive]
+    #[Groups(['getConfigurationDetails'])]
     private $price;
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'configurations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['getProductsFromConfiguration'])]
     private $product;
 
     #[ORM\OneToMany(mappedBy: 'configuration', targetEntity: Image::class, orphanRemoval: true, cascade:['persist'])]
+    #[Groups(['getImagesFromConfiguration'])]
     private $images;
 
     public function __construct()
