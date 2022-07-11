@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,9 +37,16 @@ class ProductController extends AbstractController
             }
 
     #[Route('/api/products', name:"productCreate", methods: ['POST'])]
-        public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse 
+        public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse 
             {
                 $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
+
+                // On vérifie les erreurs
+                $errors = $validator->validate($product);
+                if ($errors->count() > 0) {
+                    throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                    // return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+                }
 
                 $em->persist($product);
                 $em->flush();

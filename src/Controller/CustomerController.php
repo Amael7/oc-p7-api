@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,7 +35,7 @@ class CustomerController extends AbstractController
             }
 
     #[Route('/api/customers', name:"customerCreate", methods: ['POST'])]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ClientRepository $clientRepository): JsonResponse 
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
         {
             $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
             // Récupération de l'ensemble des données envoyées sous forme de tableau
@@ -45,6 +47,14 @@ class CustomerController extends AbstractController
                     $customer->setClient($clientRepository->find($idClient));
                 }
             }
+
+            // On vérifie les erreurs
+            $errors = $validator->validate($customer);
+            if ($errors->count() > 0) {
+                throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                // return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            }
+
             $em->persist($customer);
             $em->flush();
             $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
