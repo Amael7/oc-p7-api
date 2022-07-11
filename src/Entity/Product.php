@@ -26,7 +26,7 @@ class Product
     private $manufacturer;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "Le nom du produit est obligatoire.")]
     #[Assert\Length(min: 3, max:255)]
     #[Groups(['getProductDetails'])]
     private $name;
