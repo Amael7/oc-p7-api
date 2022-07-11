@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,13 +35,21 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients', name:"clientCreate", methods: ['POST'])]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher): JsonResponse 
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): JsonResponse 
         {
             $client = $serializer->deserialize($request->getContent(), Client::class, 'json');
             // Récupération de l'ensemble des données envoyées sous forme de tableau
             $content = $request->toArray();
             $password = $content['password'];
             $client->setPassword($passwordHasher->hashPassword($client, $password));
+
+            // On vérifie les erreurs
+            $errors = $validator->validate($client);
+            if ($errors->count() > 0) {
+                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            }
+
             $em->persist($client);
             $em->flush();
             $jsonClient = $serializer->serialize($client, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
@@ -48,12 +58,20 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
-    public function update(Request $request, SerializerInterface $serializer, Client $currentClient, EntityManagerInterface $em): JsonResponse 
+    public function update(Request $request, SerializerInterface $serializer, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator): JsonResponse 
         {
             $updatedClient = $serializer->deserialize($request->getContent(), 
                     Client::class, 
                     'json', 
                     [AbstractNormalizer::OBJECT_TO_POPULATE => $currentClient]);
+
+            // On vérifie les erreurs
+            $errors = $validator->validate($updatedClient);
+            if ($errors->count() > 0) {
+                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            }
+
             $em->persist($updatedClient);
             $em->flush();
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content

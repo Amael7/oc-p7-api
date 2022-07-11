@@ -23,72 +23,73 @@ class Product
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Groups(['getProductDetails'])]
+    #[Assert\NotBlank(message: "La manufacture est obligatoire.")]
     private $manufacturer;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max:255)]
+    #[Assert\NotBlank(message: "Le nom est obligatoire.")]
+    #[Assert\Length(min: 3, max:255, minMessage: "Le nom doit faire au moins {{ limit }} caractères", maxMessage: "Le nom ne peut pas faire plus de {{ limit }} caractères")]
     #[Groups(['getProductDetails'])]
     private $name;
 
     #[ORM\Column(type: 'text')]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 2)]
+    #[Assert\NotBlank(message: "La description est obligatoire.")]
+    #[Assert\Length(min: 2, minMessage: "La description doit faire au moins {{ limit }} caractères")]
     #[Groups(['getProductDetails'])]
     private $description;
 
     #[ORM\Column(type: 'datetime')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "La date de création est obligatoire.")]
     #[Groups(['getProductDetails'])]
     private $createdAt;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "La taille de l'écran est obligatoire.")]
     #[Groups(['getProductDetails'])]
     private $screenSize;
 
     #[ORM\Column(type: 'boolean')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "Le champ camera est obligatoire.")]
     #[Groups(['getProductDetails'])]
     private $camera;
 
     #[ORM\Column(type: 'boolean')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "Le champ bluetooth est obligatoire.")]
     #[Groups(['getProductDetails'])]
     private $bluetooth;
 
     #[ORM\Column(type: 'boolean')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "Le champ wifi est obligatoire.")]
     #[Groups(['getProductDetails'])]
     private $wifi;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull(message: "La longueur est obligatoire.")]
+    #[Assert\Positive(message: "La longueur doit obligatoire être positif.")]
     #[Groups(['getProductDetails'])]
     private $length;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull(message: "La largeur est obligatoire.")]
+    #[Assert\Positive(message: "La largeur doit obligatoire être positif.")]
     #[Groups(['getProductDetails'])]
     private $width;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull(message: "La hauteur est obligatoire.")]
+    #[Assert\Positive(message: "La hauteur doit obligatoire être positif.")]
     #[Groups(['getProductDetails'])]
     private $height;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull(message: "Le poids est obligatoire.")]
+    #[Assert\Positive(message: "Le poids doit obligatoire être positif.")]
     #[Groups(['getProductDetails'])]
     private $weight;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull(message: "Le champ das est obligatoire.")]
+    #[Assert\Positive(message: "Le champ das doit obligatoire être positif.")]
     #[Groups(['getProductDetails'])]
     private $das;
 

@@ -21,26 +21,26 @@ class Customer
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max:255)]
-    #[Assert\Email]
+    #[Assert\NotBlank(message: "L'email est obligatoire.")]
+    #[Assert\Length(max:255, maxMessage: "L'email ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\Email(message: "L'email rentré doit obligatoire être un email valide.")]
     #[Groups(['getCustomerDetails'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max:255)]
+    #[Assert\NotBlank(message: "Le nom de famille est obligatoire.")]
+    #[Assert\Length(min: 2, max:255, minMessage: "Le nom de famille doit faire au moins {{ limit }} caractères", maxMessage: "Le nom de famille ne peut pas faire plus de {{ limit }} caractères")]
     #[Groups(['getCustomerDetails'])]
     private $lastName;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max:255)]
+    #[Assert\NotBlank(message: "Le prénom est obligatoire.")]
+    #[Assert\Length(min: 3, max:255, minMessage: "Le prénom doit faire au moins {{ limit }} caractères", maxMessage: "Le prénom ne peut pas faire plus de {{ limit }} caractères")]
     #[Groups(['getCustomerDetails'])]
     private $firstName;
 
     #[ORM\Column(type: 'datetime')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "La date de création est obligatoire.")]
     #[Groups(['getCustomerDetails'])]
     private $createdAt;
 

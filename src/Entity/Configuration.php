@@ -21,20 +21,20 @@ class Configuration
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max:255)]
+    #[Assert\NotBlank(message: "La couleur est obligatoire.")]
+    #[Assert\Length(min: 3, max:255, minMessage: "La couleur doit faire au moins {{ limit }} caractères", maxMessage: "La couleur ne peut pas faire plus de {{ limit }} caractères")]
     #[Groups(['getConfigurationDetails'])]
     private $color;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 1, max:255)]
+    #[Assert\NotBlank(message: "La capacité de mémoire est obligatoire.")]
+    #[Assert\Length(min: 1, max:255, minMessage: "La capacité de mémoire doit faire au moins {{ limit }} caractères", maxMessage: "La capacité de mémoire ne peut pas faire plus de {{ limit }} caractères")]
     #[Groups(['getConfigurationDetails'])]
     private $capacity;
 
     #[ORM\Column(type: 'float')]
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull(message: "Le prix est obligatoire.")]
+    #[Assert\Positive(message: "Le prix doit obligatoire être positif.")]
     #[Groups(['getConfigurationDetails'])]
     private $price;
 

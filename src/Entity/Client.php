@@ -24,26 +24,26 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max:255)]
+    #[Assert\NotBlank(message: "Le nom de la companie est obligatoire.")]
+    #[Assert\Length(min: 3, max:255, minMessage: "Le nom de la companie doit faire au moins {{ limit }} caractères", maxMessage: "Le nom de la companie ne peut pas faire plus de {{ limit }} caractères")]
     #[Groups(['getClientDetails'])]
     private $company;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Length(max:255)]
-    #[Assert\Email]
+    #[Assert\NotBlank(message: "L'émail est obligatoire.")]
+    #[Assert\Length(max:255, maxMessage: "L'émail ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\Email(message: "L'email rentré doit obligatoire être un email valide.")]
     #[Groups(['getClientDetails'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 6, max:255)]
-    #[Assert\NotCompromisedPassword]
+    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.")]
+    #[Assert\Length(min: 6, max:255, minMessage: "Le mot de passe doit faire au moins {{ limit }} caractères", maxMessage: "Le mot de passe ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\NotCompromisedPassword(message: "Le mot de passe ne doit pas etre compromis.")]
     private $password;
 
     #[ORM\Column(type: 'datetime')]
-    #[Assert\NotNull]
+    #[Assert\NotNull(message: "La date de création est obligatoire.")]
     #[Groups(['getClientDetails'])]
     private $createdAt;
 
