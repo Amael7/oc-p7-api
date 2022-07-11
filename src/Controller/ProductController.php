@@ -53,22 +53,6 @@ class ProductController extends AbstractController
                         Product::class, 
                         'json', 
                         [AbstractNormalizer::OBJECT_TO_POPULATE => $currentProduct]);
-                // // Récupération de l'ensemble des données envoyées sous forme de tableau
-                // $content = $request->toArray();
-                // // Récupération de l'idConfigurations pour lier des configurations. S'il n'est pas défini, alors on null par défaut.
-                // $idConfigurations = $content['idConfigurations'] ?? null;
-                // if (isset($idConfigurations)) {
-                //     foreach($idConfigurations as $idConfiguration) {
-                //         $updatedProduct->setConfiguration($configurationRepository->find($idConfiguration));
-                //     }
-                // }
-                // // Récupération de removeIdConfigurations pour supprimer la liaison avec des configurations. S'il n'est pas défini, alors on null par défaut.
-                // $removeIdConfigurations = $content['removeIdConfigurations'] ?? null;
-                // if (isset($removeIdConfigurations)) {
-                //     foreach($removeIdConfigurations as $removeIdConfiguration) {
-                //         $updatedProduct->removeConfiguration($configurationRepository->find($removeIdConfiguration));
-                //     }
-                // }
                 $em->persist($updatedProduct);
                 $em->flush();
                 return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
