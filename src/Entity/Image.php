@@ -18,8 +18,8 @@ class Image
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank]
-    #[Assert\Url]
+    #[Assert\NotBlank(message: "L'url est obligatoire.")]
+    #[Assert\Url(message: "Le lien doit être un url obligatoirement.")]
     #[Groups(['getImageDetails'])]
     private $url;
 
