@@ -8,6 +8,7 @@ use App\Entity\Configuration;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\ConfigurationRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -22,9 +23,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class ProductController extends AbstractController
 {
     #[Route('/api/products', name: 'products', methods: ['GET'])]
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, Request $request, PaginatorInterface $paginator): JsonResponse
         {
             $productsList = $productRepository->findAll();
+            $page = $request->query->getInt('page', 1);
+            $limit = $request->query->getInt('limit', 5);
+
+            $productsList = $paginator->paginate(
+                $productsList, /* query NOT result */
+                $page, /*page number*/
+                $limit /*limit per page*/
+            );
+            
             $jsonProductsList = $serializer->serialize($productsList, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
         }
