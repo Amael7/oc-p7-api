@@ -74,38 +74,37 @@ class CustomerController extends AbstractController
         }
 
     #[Route('/api/customers/{id}', name: 'customerUpdate', methods: ['PUT'])]
-    public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
+    public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository, ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
         {
-            $updatedCustomer = $serializer->deserialize($request->getContent(), 
-                    Customer::class, 
-                    'json', 
-                    [AbstractNormalizer::OBJECT_TO_POPULATE => $currentCustomer]);
-
+            $newCustomer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
+            if (null !== $newCustomer->getEmail()) { $currentCustomer->setEmail($newCustomer->getEmail()); }
+            if (null !== $newCustomer->getLastName()) { $currentCustomer->setLastName($newCustomer->getLastName()); }
+            if (null !== $newCustomer->getFirstName()) { $currentCustomer->setFirstName($newCustomer->getFirstName()); }
             // On vérifie les erreurs
-            $errors = $validator->validate($updatedCustomer);
+            $errors = $validator->validate($currentCustomer);
             if ($errors->count() > 0) {
                 // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
-
             // Récupération de l'ensemble des données envoyées sous forme de tableau
             $content = $request->toArray();
             // Récupération de l'idClients pour lier des clients. S'il n'est pas défini, alors on null par défaut.
             $idClients = $content['idClients'] ?? null;
             if (isset($idClients)) {
                 foreach($idClients as $idClient) {
-                    $updatedCustomer->setClient($clientRepository->find($idClient));
+                    $currentCustomer->setClient($clientRepository->find($idClient));
                 }
             }
             // Récupération de removeIdClients pour supprimer la liaison avec des clients. S'il n'est pas défini, alors on null par défaut.
             $removeIdClients = $content['removeIdClients'] ?? null;
             if (isset($removeIdClients)) {
                 foreach($removeIdClients as $removeIdClient) {
-                    $updatedCustomer->removeClient($clientRepository->find($removeIdClient));
+                    $currentCustomer->removeClient($clientRepository->find($removeIdClient));
                 }
             }
-            $em->persist($updatedCustomer);
+            $em->persist($currentCustomer);
             $em->flush();
+            $cachePool->invalidateTags(["customersCache"]);
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
