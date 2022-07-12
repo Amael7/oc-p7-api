@@ -28,13 +28,11 @@ class ProductController extends AbstractController
             $productsList = $productRepository->findAll();
             $page = $request->query->getInt('page', 1);
             $limit = $request->query->getInt('limit', 5);
-
             $productsList = $paginator->paginate(
                 $productsList, /* query NOT result */
                 $page, /*page number*/
                 $limit /*limit per page*/
             );
-            
             $jsonProductsList = $serializer->serialize($productsList, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
         }
