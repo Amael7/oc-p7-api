@@ -13,11 +13,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 class CustomerController extends AbstractController
 {
     #[Route('/api/customers', name: 'customers', methods: ['GET'])]
@@ -29,7 +30,8 @@ class CustomerController extends AbstractController
             $jsoncustomersList = $cachePool->get($idCache, function (ItemInterface $item) use ($customerRepository, $page, $limit, $serializer) {
                 $item->tag("customersCache");
                 $customersList = $customerRepository->findAllWithPagination($page, $limit);
-                return $serializer->serialize($customersList, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
+                $context = SerializationContext::create()->setGroups(['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']);
+                return $serializer->serialize($customersList, 'json', $context);
             });
             return new JsonResponse($jsoncustomersList, Response::HTTP_OK, [], true);  # Response 200
         }
@@ -37,7 +39,8 @@ class CustomerController extends AbstractController
     #[Route('/api/customers/{id}', name: 'customerShow', methods: ['GET'])]
         public function show(Customer $customer, SerializerInterface $serializer): JsonResponse
             {
-                $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
+                $context = SerializationContext::create()->setGroups(['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']);
+                $jsonCustomer = $serializer->serialize($customer, 'json', $context);
                 return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
             }
 
@@ -64,7 +67,8 @@ class CustomerController extends AbstractController
 
             $em->persist($customer);
             $em->flush();
-            $jsonCustomer = $serializer->serialize($customer, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
+            $context = SerializationContext::create()->setGroups(['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']);
+            $jsonCustomer = $serializer->serialize($customer, 'json', $context);
             $location = $urlGenerator->generate('customerShow', ['id' => $customer->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }

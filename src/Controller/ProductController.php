@@ -12,6 +12,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -28,7 +30,8 @@ class ProductController extends AbstractController
             $jsonProductsList = $cachePool->get($idCache, function (ItemInterface $item) use ($productRepository, $page, $limit, $serializer) {
                 $item->tag("productsCache");
                 $productsList = $productRepository->findAllWithPagination($page, $limit);
-                return $serializer->serialize($productsList, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
+                $context = SerializationContext::create()->setGroups(['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']);
+                return $serializer->serialize($productsList, 'json', $context);
             });
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
         }
@@ -36,7 +39,8 @@ class ProductController extends AbstractController
     #[Route('/api/products/{id}', name: 'productShow', methods: ['GET'])]
         public function show(Product $product, SerializerInterface $serializer): JsonResponse
             {
-                $jsonProduct = $serializer->serialize($product, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
+                $context = SerializationContext::create()->setGroups(['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']);
+                $jsonProduct = $serializer->serialize($product, 'json', $context);
                 return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
             }
 
@@ -54,7 +58,8 @@ class ProductController extends AbstractController
 
                 $em->persist($product);
                 $em->flush();
-                $jsonproduct = $serializer->serialize($product, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
+                $context = SerializationContext::create()->setGroups(['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']);
+                $jsonproduct = $serializer->serialize($product, 'json', $context);
                 $location = $urlGenerator->generate('productShow', ['id' => $product->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
                 return new JsonResponse($jsonproduct, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
             }
