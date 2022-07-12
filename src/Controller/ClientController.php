@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Client;
 use App\Repository\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,11 +22,19 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ClientController extends AbstractController
 {
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
-    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request): JsonResponse
+    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request, PaginatorInterface $paginator): JsonResponse
         {
-            $page = $request->get('page', 1);
-            $limit = $request->get('limit', 10);
-            $clientsList = $clientRepository->findAllWithPagination($page, $limit);
+            $clientsList = $clientRepository->findAll();
+            $page = $request->query->getInt('page', 1);
+            $limit = $request->query->getInt('limit', 5);
+
+            $clientsList = $paginator->paginate(
+                $clientsList, /* query NOT result */
+                $page, /*page number*/
+                $limit /*limit per page*/
+            );
+
+            // $clientsList = $clientRepository->findAllWithPagination($page, $limit);
             $jsonClientsList = $serializer->serialize($clientsList, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
             return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
         }
