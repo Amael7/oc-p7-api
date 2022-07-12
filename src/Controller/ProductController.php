@@ -2,18 +2,16 @@
 
 namespace App\Controller;
 
-use App\Entity\Image;
 use App\Entity\Product;
-use App\Entity\Configuration;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\ConfigurationRepository;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -22,10 +20,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class ProductController extends AbstractController
 {
     #[Route('/api/products', name: 'products', methods: ['GET'])]
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
-            $productsList = $productRepository->findAll();
-            $jsonProductsList = $serializer->serialize($productsList, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 5);
+            $idCache = "getAllProducts-" . $page . "-" . $limit;
+            $jsonProductsList = $cachePool->get($idCache, function (ItemInterface $item) use ($productRepository, $page, $limit, $serializer) {
+                $item->tag("productsCache");
+                $productsList = $productRepository->findAllWithPagination($page, $limit);
+                return $serializer->serialize($productsList, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
+            });
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
         }
 
@@ -74,8 +78,9 @@ class ProductController extends AbstractController
             }
 
     #[Route('/api/products/{id}', name: 'productDestroy', methods: ['DELETE'])]
-        public function destroy(Product $product, EntityManagerInterface $em): JsonResponse 
+        public function destroy(Product $product, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
             {
+                $cachePool->invalidateTags(["productsCache"]);
                 $em->remove($product);
                 $em->flush();
                 return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
