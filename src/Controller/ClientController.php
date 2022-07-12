@@ -72,22 +72,25 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
-    public function update(Request $request, SerializerInterface $serializer, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator): JsonResponse 
+    public function update(Request $request, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
         {
-            $updatedClient = $serializer->deserialize($request->getContent(), 
-                    Client::class, 
-                    'json', 
-                    [AbstractNormalizer::OBJECT_TO_POPULATE => $currentClient]);
-
+            $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
+            if (null !== $newClient->getCompany()) { $currentClient->setCompany($newClient->getCompany()); }
+            if (null !== $newClient->getEmail()) { $currentClient->setEmail($newClient->getEmail()); }
+            if (null !== $newClient->getPassword()) { $currentClient->setPassword($passwordHasher->hashPassword($currentClient, $newClient->getPassword())); }
+            if (null !== $newClient->getCreatedAt()) { $currentClient->setCreatedAt($newClient->getCreatedAt()); }
+            if (null !== $newClient->getRoles()) { $currentClient->setRoles($newClient->getRoles()); }
+            
             // On vérifie les erreurs
-            $errors = $validator->validate($updatedClient);
+            $errors = $validator->validate($currentClient);
             if ($errors->count() > 0) {
                 // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
-
-            $em->persist($updatedClient);
+            
+            $em->persist($currentClient);
             $em->flush();
+            $cachePool->invalidateTags(["clientsCache"]);
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
