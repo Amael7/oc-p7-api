@@ -20,9 +20,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class CustomerController extends AbstractController
 {
     #[Route('/api/customers', name: 'customers', methods: ['GET'])]
-    public function index(CustomerRepository $customerRepository, SerializerInterface $serializer): JsonResponse
+    public function index(CustomerRepository $customerRepository, SerializerInterface $serializer, Request $request): JsonResponse
         {
-            $customersList = $customerRepository->findAll();
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 5);
+            $customersList = $customerRepository->findAllWithPagination($page, $limit);
             $jsoncustomersList = $serializer->serialize($customersList, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
             return new JsonResponse($jsoncustomersList, Response::HTTP_OK, [], true);  # Response 200
         }

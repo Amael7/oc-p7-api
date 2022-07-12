@@ -22,9 +22,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class ProductController extends AbstractController
 {
     #[Route('/api/products', name: 'products', methods: ['GET'])]
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, Request $request): JsonResponse
         {
-            $productsList = $productRepository->findAll();
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 5);
+            $productsList = $productRepository->findAllWithPagination($page, $limit);
             $jsonProductsList = $serializer->serialize($productsList, 'json', ['groups' => ['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']]);
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
         }
