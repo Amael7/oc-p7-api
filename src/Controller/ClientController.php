@@ -5,12 +5,13 @@ namespace App\Controller;
 use App\Entity\Client;
 use App\Repository\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -21,12 +22,16 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ClientController extends AbstractController
 {
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
-    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request): JsonResponse
+    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
-            $clientsList = $clientRepository->findAllWithPagination($page, $limit);
-            $jsonClientsList = $serializer->serialize($clientsList, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
+            $idCache = "getAllClients-" . $page . "-" . $limit;
+            $jsonClientsList = $cachePool->get($idCache, function (ItemInterface $item) use ($clientRepository, $page, $limit, $serializer) {
+                $item->tag("clientsCache");
+                $clientsList = $clientRepository->findAllWithPagination($page, $limit);
+                return $serializer->serialize($clientsList, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
+            });
             return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
         }
 
@@ -82,8 +87,9 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients/{id}', name: 'clientDestroy', methods: ['DELETE'])]
-    public function destroy(Client $client, EntityManagerInterface $em): JsonResponse 
+    public function destroy(Client $client, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
         {
+            $cachePool->invalidateTags(["clientsCache"]);
             $em->remove($client);
             $em->flush();
             return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
