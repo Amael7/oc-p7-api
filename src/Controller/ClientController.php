@@ -21,9 +21,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ClientController extends AbstractController
 {
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
-    public function index(ClientRepository $clientRepository, SerializerInterface $serializer): JsonResponse
+    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request): JsonResponse
         {
-            $clientsList = $clientRepository->findAll();
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 10);
+            $clientsList = $clientRepository->findAllWithPagination($page, $limit);
             $jsonClientsList = $serializer->serialize($clientsList, 'json', ['groups' => ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']]);
             return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
         }
