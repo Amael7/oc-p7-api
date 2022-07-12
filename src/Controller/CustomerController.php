@@ -6,6 +6,7 @@ use App\Entity\Customer;
 use App\Repository\ClientRepository;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,9 +21,16 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class CustomerController extends AbstractController
 {
     #[Route('/api/customers', name: 'customers', methods: ['GET'])]
-    public function index(CustomerRepository $customerRepository, SerializerInterface $serializer): JsonResponse
+    public function index(CustomerRepository $customerRepository, SerializerInterface $serializer, Request $request, PaginatorInterface $paginator): JsonResponse
         {
             $customersList = $customerRepository->findAll();
+            $page = $request->query->getInt('page', 1);
+            $limit = $request->query->getInt('limit', 5);
+            $customersList = $paginator->paginate(
+                $customersList, /* query NOT result */
+                $page, /*page number*/
+                $limit /*limit per page*/
+            );
             $jsoncustomersList = $serializer->serialize($customersList, 'json', ['groups' => ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']]);
             return new JsonResponse($jsoncustomersList, Response::HTTP_OK, [], true);  # Response 200
         }
