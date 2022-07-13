@@ -26,6 +26,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ClientController extends AbstractController
 {
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour voir la liste des clients')]
     public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
             $page = $request->get('page', 1);
@@ -87,6 +88,7 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un client')]
     public function update(Request $request, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, CustomerRepository $customerRepository): JsonResponse 
         {
             $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
@@ -135,6 +137,7 @@ class ClientController extends AbstractController
         }
 
     #[Route('/api/clients/{id}', name: 'clientDestroy', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un client')]
     public function destroy(Client $client, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
         {
             $cachePool->invalidateTags(["clientsCache"]);
