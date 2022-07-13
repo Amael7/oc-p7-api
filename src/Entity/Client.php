@@ -165,6 +165,13 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function setCustomer(?Customer $customer): self
+    {
+        $this->customers[] = $customer;
+
+        return $this;
+    }
+
     /**
      * The public representation of the user (e.g. a username, an email address, etc.)
      *
