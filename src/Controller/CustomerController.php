@@ -48,28 +48,31 @@ class CustomerController extends AbstractController
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
         {
             $customer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
+            $newCustomer = new Customer();
+            if (null !== $customer->getCreatedAt()) { $newCustomer->setCreatedAt($customer->getCreatedAt()); }
+            if (null !== $customer->getEmail()) { $newCustomer->setEmail($customer->getEmail()); }
+            if (null !== $customer->getLastName()) { $newCustomer->setLastName($customer->getLastName()); }
+            if (null !== $customer->getFirstName()) { $newCustomer->setFirstName($customer->getFirstName()); }
+            // On vérifie les erreurs
+            $errors = $validator->validate($newCustomer);
+            if ($errors->count() > 0) {
+                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
+                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            }
             // Récupération de l'ensemble des données envoyées sous forme de tableau
             $content = $request->toArray();
             // Récupération de l'idClients. S'il n'est pas défini, alors on met -1 par défaut.
             $idClients = $content['idClients'] ?? null;
             if (isset($idClients)) {
                 foreach($idClients as $idClient) {
-                    $customer->setClient($clientRepository->find($idClient));
+                    $newCustomer->setClient($clientRepository->find($idClient));
                 }
             }
-
-            // On vérifie les erreurs
-            $errors = $validator->validate($customer);
-            if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
-                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
-            }
-
-            $em->persist($customer);
+            $em->persist($newCustomer);
             $em->flush();
             $context = SerializationContext::create()->setGroups(['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']);
-            $jsonCustomer = $serializer->serialize($customer, 'json', $context);
-            $location = $urlGenerator->generate('customerShow', ['id' => $customer->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            $jsonCustomer = $serializer->serialize($newCustomer, 'json', $context);
+            $location = $urlGenerator->generate('customerShow', ['id' => $newCustomer->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
 
@@ -77,6 +80,7 @@ class CustomerController extends AbstractController
     public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository, ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
         {
             $newCustomer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
+            if (null !== $newCustomer->getCreatedAt()) { $currentCustomer->setCreatedAt($newCustomer->getCreatedAt()); }
             if (null !== $newCustomer->getEmail()) { $currentCustomer->setEmail($newCustomer->getEmail()); }
             if (null !== $newCustomer->getLastName()) { $currentCustomer->setLastName($newCustomer->getLastName()); }
             if (null !== $newCustomer->getFirstName()) { $currentCustomer->setFirstName($newCustomer->getFirstName()); }
