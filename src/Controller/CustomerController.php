@@ -27,27 +27,43 @@ use OpenApi\Annotations as OA;
 class CustomerController extends AbstractController
 {
     /**
-     * Cette méthode permet de récupérer l'ensemble des customers.
+     * List all the customers.
      * 
      * * @OA\Response(
      *     response=200,
-     *     description="Retourne la liste des customers",
+     *     description="Successful operation: Returns a list of all customers",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
      *     )
      * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
      * @OA\Parameter(
      *     name="page",
      *     in="query",
-     *     description="La page que l'on veut récupérer",
+     *     description="The page you want to retrieve",
      *     @OA\Schema(type="int")
      * )
      *
      * @OA\Parameter(
      *     name="limit",
      *     in="query",
-     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     description="The number of items to be retrieved",
      *     @OA\Schema(type="int")
      * )
      * @OA\Tag(name="Customers")
@@ -74,15 +90,35 @@ class CustomerController extends AbstractController
         }
 
     /**
-     * Cette méthode permet de récupérer l'ensemble des details d'un customer.
+     * List characteristic of the specified customer.
      * 
      * * @OA\Response(
      *     response=200,
-     *     description="Retourne l'ensemble des details d'un customer",
+     *     description="Successful operation: Return the characteristics of the specified customer",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Customers")
@@ -100,15 +136,30 @@ class CustomerController extends AbstractController
         }
 
     /**
-     * Cette méthode permet de créer un customer.
+     * Create a new customer.
      * 
      * * @OA\Response(
-     *     response=200,
-     *     description="Retourne une response 201 - Created",
+     *     response=201,
+     *     description="Successful operation: new customer created",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
      * )
      * 
      * @OA\Tag(name="Customers")
@@ -155,15 +206,35 @@ class CustomerController extends AbstractController
         }
 
     /**
-     * Cette méthode permet de mettre à jour un ustomer.
+     * Update a ustomer.
      * 
      * * @OA\Response(
      *     response=204,
-     *     description="Retourne une response 204 - No Content",
+     *     description="Successful operation: Updated",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Customers")
@@ -216,15 +287,35 @@ class CustomerController extends AbstractController
 
     
     /**
-     * Cette méthode permet de supprimer un customer.
+     * Delete a customer.
      * 
      * * @OA\Response(
      *     response=204,
-     *     description="Retourne une response 204 - No Content",
+     *     description="Successful operation: No-Content",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Customers")

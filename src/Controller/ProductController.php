@@ -32,27 +32,38 @@ class ProductController extends AbstractController
 {
     
     /**
-     * Cette méthode permet de récupérer l'ensemble des products.
+     * List all the products.
      * 
      * * @OA\Response(
      *     response=200,
-     *     description="Retourne la liste des products",
+     *     description="Successful operation: Returns a list of all products",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
      *     )
      * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
      * @OA\Parameter(
      *     name="page",
      *     in="query",
-     *     description="La page que l'on veut récupérer",
+     *     description="The page you want to retrieve",
      *     @OA\Schema(type="int")
      * )
      *
      * @OA\Parameter(
      *     name="limit",
      *     in="query",
-     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     description="The number of items to be retrieved",
      *     @OA\Schema(type="int")
      * )
      * @OA\Tag(name="Products")
@@ -80,15 +91,30 @@ class ProductController extends AbstractController
 
     
     /**
-     * Cette méthode permet de récupérer l'ensemble des details d'un product.
+     * List characteristic of the specified product.
      * 
      * * @OA\Response(
      *     response=200,
-     *     description="Retourne l'ensemble des details d'un product",
+     *     description="Successful operation: Return the characteristics of the specified product",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Products")
@@ -106,15 +132,35 @@ class ProductController extends AbstractController
         }
 
     /**
-     * Cette méthode permet de créer un product.
+     * Create a new product.
      * 
      * * @OA\Response(
-     *     response=200,
-     *     description="Retourne une response 201 - Created",
+     *     response=201,
+     *     description="Successful operation: new product created",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Products")
@@ -184,15 +230,35 @@ class ProductController extends AbstractController
         }
 
     /**
-     * Cette méthode permet de mettre à jour un product.
+     * Update a product.
      * 
      * * @OA\Response(
      *     response=204,
-     *     description="Retourne une response 204 - No Content",
+     *     description="Successful operation: Updated",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Products")
@@ -292,15 +358,35 @@ class ProductController extends AbstractController
         }
 
     /**
-     * Cette méthode permet de supprimer un product.
+     * Delete a product.
      * 
      * * @OA\Response(
      *     response=204,
-     *     description="Retourne une response 204 - No Content",
+     *     description="Successful operation: No-Content",
      *     @OA\JsonContent(
      *        type="array",
      *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
      *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
      * )
      * 
      * @OA\Tag(name="Products")
