@@ -103,10 +103,6 @@ class CustomerController extends AbstractController
                     $currentCustomer->setClient($clientRepository->find($idClient));
                 }
             }
-
-
-            'bonjour';
-
             // Récupération de removeIdClients pour supprimer la liaison avec des clients. S'il n'est pas défini, alors on null par défaut.
             $removeIdClients = $content['removeIdClients'] ?? null;
             if (isset($removeIdClients)) {
