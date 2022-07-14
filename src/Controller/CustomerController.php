@@ -26,6 +26,38 @@ use OpenApi\Annotations as OA;
 
 class CustomerController extends AbstractController
 {
+    /**
+     * Cette méthode permet de récupérer l'ensemble des customers.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des customers",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="La page que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Le nombre d'éléments que l'on veut récupérer",
+     *     @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Customers")
+     *
+     * @param CustomerRepository $customerRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/customers', name: 'customers', methods: ['GET'])]
     public function index(CustomerRepository $customerRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
@@ -41,6 +73,24 @@ class CustomerController extends AbstractController
             return new JsonResponse($jsoncustomersList, Response::HTTP_OK, [], true);  # Response 200
         }
 
+    /**
+     * Cette méthode permet de récupérer l'ensemble des details d'un customer.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Retourne l'ensemble des details d'un customer",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Customer $customer
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/customers/{id}', name: 'customerShow', methods: ['GET'])]
     public function show(Customer $customer, SerializerInterface $serializer): JsonResponse
         {
@@ -49,6 +99,28 @@ class CustomerController extends AbstractController
             return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
 
+    /**
+     * Cette méthode permet de créer un customer.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Retourne une response 201 - Created",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ClientRepository $clientRepository
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
     #[Route('/api/customers', name:"customerCreate", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un customer')]
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
@@ -82,6 +154,29 @@ class CustomerController extends AbstractController
             return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
 
+    /**
+     * Cette méthode permet de mettre à jour un ustomer.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Retourne une response 204 - No Content",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param Customer $currentCustomer
+     * @param EntityManagerInterface $em
+     * @param ClientRepository $clientRepository
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/customers/{id}', name: 'customerUpdate', methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un customer')]
     public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository, ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
@@ -119,6 +214,26 @@ class CustomerController extends AbstractController
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
+    
+    /**
+     * Cette méthode permet de supprimer un customer.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Retourne une response 204 - No Content",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Customer $customer
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/customers/{id}', name: 'customerDestroy', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un customer')]
     public function destroy(Customer $customer, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
