@@ -20,9 +20,69 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class CustomerController extends AbstractController
 {
+    /**
+     * List all the customers.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Successful operation: Returns a list of all customers",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page you want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items to be retrieved",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param CustomerRepository $customerRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/customers', name: 'customers', methods: ['GET'])]
     public function index(CustomerRepository $customerRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
@@ -38,6 +98,60 @@ class CustomerController extends AbstractController
             return new JsonResponse($jsoncustomersList, Response::HTTP_OK, [], true);  # Response 200
         }
 
+    /**
+     * List characteristic of the specified customer.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Successful operation: Return the characteristics of the specified customer",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Customer unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Customer $customer
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/customers/{id}', name: 'customerShow', methods: ['GET'])]
     public function show(Customer $customer, SerializerInterface $serializer): JsonResponse
         {
@@ -46,6 +160,55 @@ class CustomerController extends AbstractController
             return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
 
+    /**
+     * Create a new customer.
+     * 
+     * * @OA\Response(
+     *     response=201,
+     *     description="Successful operation: new customer created",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Customer::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ClientRepository $clientRepository
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
     #[Route('/api/customers', name:"customerCreate", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un customer')]
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
@@ -79,6 +242,69 @@ class CustomerController extends AbstractController
             return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
 
+    /**
+     * Update a customer.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: Updated",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Customer unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Customer::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param Customer $currentCustomer
+     * @param EntityManagerInterface $em
+     * @param ClientRepository $clientRepository
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/customers/{id}', name: 'customerUpdate', methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un customer')]
     public function update(Request $request, SerializerInterface $serializer, Customer $currentCustomer, EntityManagerInterface $em, ClientRepository $clientRepository, ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
@@ -116,6 +342,62 @@ class CustomerController extends AbstractController
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
+    
+    /**
+     * Delete a customer.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: No-Content",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Customer::class, groups={"getCustomerDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Customer unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Customers")
+     *
+     * @param Customer $customer
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/customers/{id}', name: 'customerDestroy', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un customer')]
     public function destroy(Customer $customer, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 

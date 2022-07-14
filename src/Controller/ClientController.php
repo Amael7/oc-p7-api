@@ -22,9 +22,70 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class ClientController extends AbstractController
 {
+    /**
+     * List all the BileMo's clients.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Successful operation: Returns a list of all clients",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Client::class, groups={"getClientDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page you want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items to be retrieved",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Clients")
+     * 
+     *
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour voir la liste des clients')]
     public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
@@ -41,6 +102,61 @@ class ClientController extends AbstractController
             return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
         }
 
+    
+    /**
+     * List characteristic of the specified BileMo's client.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Successful operation: Return the characteristics of the specified client",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Client::class, groups={"getClientDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Clients")
+     *
+     * @param Client $client
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/clients/{id}', name: 'clientShow', methods: ['GET'])]
     public function show(Client $client, SerializerInterface $serializer): JsonResponse
         {
@@ -49,6 +165,55 @@ class ClientController extends AbstractController
             return new JsonResponse($jsonClient, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
 
+    /**
+     * Create a new BileMo's client.
+     * 
+     * * @OA\Response(
+     *     response=201,
+     *     description="Successful operation: new client created",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Client::class, groups={"getClientDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Client::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Clients")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
     #[Route('/api/clients', name:"clientCreate", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un client')]
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): JsonResponse 
@@ -87,6 +252,70 @@ class ClientController extends AbstractController
             return new JsonResponse($jsonClient, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
 
+    /**
+     * Update a BileMo's client.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: Updated",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Client::class, groups={"getClientDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Client::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Clients")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param Client $currentClient
+     * @param EntityManagerInterface $em
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cachePool
+     * @param CustomerRepository $customerRepository
+     * @return JsonResponse
+     */
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un client')]
     public function update(Request $request, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, CustomerRepository $customerRepository): JsonResponse 
@@ -136,6 +365,61 @@ class ClientController extends AbstractController
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
+    /**
+     * Delete a BileMo's client.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: No-Content",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Client::class, groups={"getClientDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Clients")
+     *
+     * @param Client $client
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/clients/{id}', name: 'clientDestroy', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un client')]
     public function destroy(Client $client, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 

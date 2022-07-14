@@ -24,9 +24,65 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class ProductController extends AbstractController
 {
+    
+    /**
+     * List all the products.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Successful operation: Returns a list of all products",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="The page you want to retrieve",
+     *     @OA\Schema(type="int")
+     * )
+     *
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="The number of items to be retrieved",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param ProductRepository $productRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/products', name: 'products', methods: ['GET'])]
     public function index(ProductRepository $productRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
@@ -42,6 +98,56 @@ class ProductController extends AbstractController
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
         }
 
+    
+    /**
+     * List characteristic of the specified product.
+     * 
+     * * @OA\Response(
+     *     response=200,
+     *     description="Successful operation: Return the characteristics of the specified product",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Product unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param Product $product
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
+     */
     #[Route('/api/products/{id}', name: 'productShow', methods: ['GET'])]
     public function show(Product $product, SerializerInterface $serializer): JsonResponse
         {
@@ -50,6 +156,59 @@ class ProductController extends AbstractController
             return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
 
+    /**
+     * Create a new product.
+     * 
+     * * @OA\Response(
+     *     response=201,
+     *     description="Successful operation: new product created",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Product::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ValidatorInterface $validator
+     * @return JsonResponse
+     */
     #[Route('/api/products', name:"productCreate", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un produit')]
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse 
@@ -107,6 +266,70 @@ class ProductController extends AbstractController
             return new JsonResponse($jsonproduct, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
         }
 
+    /**
+     * Update a product.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: Updated",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Product::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Product unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param Product $currentProduct
+     * @param EntityManagerInterface $em
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cachePool
+     * @param ConfigurationRepository $configurationRepository
+     * @param ImageRepository $imageRepository
+     * @return JsonResponse
+     */
     #[Route('/api/products/{id}', name: 'productUpdate', methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un produit')]
     public function update(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, ConfigurationRepository $configurationRepository, ImageRepository $imageRepository): JsonResponse 
@@ -191,6 +414,61 @@ class ProductController extends AbstractController
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 
+    /**
+     * Delete a product.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: No-Content",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class, groups={"getProductDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Product unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Products")
+     *
+     * @param Product $product
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cachePool
+     * @return JsonResponse
+     */
     #[Route('/api/products/{id}', name: 'productDestroy', methods: ['DELETE'])]
     #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un produit')]
     public function destroy(Product $product, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
