@@ -66,6 +66,15 @@ class ProductController extends AbstractController
      *     description="The number of items to be retrieved",
      *     @OA\Schema(type="int")
      * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
      * @OA\Tag(name="Products")
      *
      * @param ProductRepository $productRepository
@@ -117,6 +126,22 @@ class ProductController extends AbstractController
      *     description="Object not found: Invalid route or resource ID",
      * )
      * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Product unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
      * @OA\Tag(name="Products")
      *
      * @param Product $product
@@ -161,6 +186,18 @@ class ProductController extends AbstractController
      * * @OA\Response(
      *     response=404,
      *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Product::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
      * )
      * 
      * @OA\Tag(name="Products")
@@ -259,6 +296,26 @@ class ProductController extends AbstractController
      * * @OA\Response(
      *     response=404,
      *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Product::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Product unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
      * )
      * 
      * @OA\Tag(name="Products")
@@ -387,6 +444,22 @@ class ProductController extends AbstractController
      * * @OA\Response(
      *     response=404,
      *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Product unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
      * )
      * 
      * @OA\Tag(name="Products")

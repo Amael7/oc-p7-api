@@ -68,6 +68,15 @@ class ClientController extends AbstractController
      *     description="The number of items to be retrieved",
      *     @OA\Schema(type="int")
      * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
      * @OA\Tag(name="Clients")
      * 
      *
@@ -126,6 +135,22 @@ class ClientController extends AbstractController
      *     description="Object not found: Invalid route or resource ID",
      * )
      * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
      * @OA\Tag(name="Clients")
      *
      * @param Client $client
@@ -165,6 +190,18 @@ class ClientController extends AbstractController
      * * @OA\Response(
      *     response=403,
      *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Client::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
      * )
      * 
      * @OA\Tag(name="Clients")
@@ -245,6 +282,26 @@ class ClientController extends AbstractController
      * * @OA\Response(
      *     response=404,
      *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Client::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
      * )
      * 
      * @OA\Tag(name="Clients")
@@ -338,6 +395,22 @@ class ClientController extends AbstractController
      * * @OA\Response(
      *     response=404,
      *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
      * )
      * 
      * @OA\Tag(name="Clients")
