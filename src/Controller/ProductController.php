@@ -81,7 +81,8 @@ class ProductController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/products', name: 'products', methods: ['GET'])]
-    public function index(ProductRepository $productRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
+    public function index(ProductRepository $productRepository, SerializerInterface $serializer, 
+                            Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
@@ -89,7 +90,13 @@ class ProductController extends AbstractController
             $jsonProductsList = $cachePool->get($idCache, function (ItemInterface $item) use ($productRepository, $page, $limit, $serializer) {
                 $item->tag("productsCache");
                 $productsList = $productRepository->findAllWithPagination($page, $limit);
-                $context = SerializationContext::create()->setGroups(['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']);
+                $context = SerializationContext::create()->setGroups(
+                    ['getProductDetails', 
+                        'getConfigurationFromProduct',
+                        'getConfigurationDetails', 
+                        'getImagesFromConfiguration', 
+                        'getImageDetails'
+                    ]);
                 return $serializer->serialize($productsList, 'json', $context);
             });
             return new JsonResponse($jsonProductsList, Response::HTTP_OK, [], true);  # Response 200
@@ -148,7 +155,13 @@ class ProductController extends AbstractController
     #[Route('/api/products/{id}', name: 'productShow', methods: ['GET'])]
     public function show(Product $product, SerializerInterface $serializer): JsonResponse
         {
-            $context = SerializationContext::create()->setGroups(['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']);
+            $context = SerializationContext::create()->setGroups(
+                ['getProductDetails',
+                    'getConfigurationFromProduct',
+                    'getConfigurationDetails',
+                    'getImagesFromConfiguration', 
+                    'getImageDetails'
+                ]);
             $jsonProduct = $serializer->serialize($product, 'json', $context);
             return new JsonResponse($jsonProduct, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
@@ -208,7 +221,9 @@ class ProductController extends AbstractController
      */
     #[Route('/api/products', name:"productCreate", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to create a product')]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse 
+    public function create(Request $request, SerializerInterface $serializer, 
+                            EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, 
+                            ValidatorInterface $validator): JsonResponse 
         {
             $newProduct = $serializer->deserialize($request->getContent(), Product::class, 'json');
             $product = new Product();
@@ -243,7 +258,6 @@ class ProductController extends AbstractController
                             ->setPrice($configuration['price']);
                             $em->persist($config);
                             $product->addConfiguration($config);
-
                     $images = $configuration['images'];
                     if (isset($images)) {
                         foreach($images as $image) {
@@ -257,7 +271,13 @@ class ProductController extends AbstractController
             }
             $em->persist($product);
             $em->flush();
-            $context = SerializationContext::create()->setGroups(['getProductDetails', 'getConfigurationFromProduct', 'getConfigurationDetails', 'getImagesFromConfiguration', 'getImageDetails']);
+            $context = SerializationContext::create()->setGroups(
+                ['getProductDetails', 
+                    'getConfigurationFromProduct', 
+                    'getConfigurationDetails', 
+                    'getImagesFromConfiguration', 
+                    'getImageDetails'
+                ]);
             $jsonproduct = $serializer->serialize($product, 'json', $context);
             $location = $urlGenerator->generate('productShow', ['id' => $product->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return new JsonResponse($jsonproduct, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
@@ -329,7 +349,11 @@ class ProductController extends AbstractController
      */
     #[Route('/api/products/{id}', name: 'productUpdate', methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to update a product')]
-    public function update(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, ConfigurationRepository $configurationRepository, ImageRepository $imageRepository): JsonResponse 
+    public function update(Request $request, SerializerInterface $serializer, 
+                            Product $currentProduct, EntityManagerInterface $em, 
+                            ValidatorInterface $validator, TagAwareCacheInterface $cachePool, 
+                            ConfigurationRepository $configurationRepository, 
+                            ImageRepository $imageRepository): JsonResponse 
         {
             $newProduct = $serializer->deserialize($request->getContent(), Product::class, 'json');
             if (null !== $newProduct->getCreatedAt()) { $currentProduct->setCreatedAt($newProduct->getCreatedAt()); }
