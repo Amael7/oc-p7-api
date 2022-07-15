@@ -24,22 +24,17 @@ Nom du Projet : Créez un web service exposant une API
 3.Installez les dependances :
 
          composer install
-         npm install
 
-4.Build les assets:
 
-         npm run build
-
-5.Mettez en place la BDD :
+4.Mettez en place la BDD :
 
          php bin/console doctrine:database:create
          php bin/console doctrine:migrations:migrate
 
-6.Implementez les fixtures :
+5.Implementez les fixtures :
 
          php bin/console doctrine:fixtures:load
          
-7.Lancer les serveur :
+6.Lancer les serveur :
   
          symfony serve
-         yarn dev-server
