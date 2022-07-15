@@ -518,10 +518,31 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients/{id}/password', name: 'clientPassword', methods: ['Put'])]
-    public function updatePassword(Request $request, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, CustomerRepository $customerRepository): JsonResponse 
+    public function updatePassword(Request $request, SerializerInterface $serializer, 
+                                    UserPasswordHasherInterface $passwordHasher, 
+                                    Client $client, EntityManagerInterface $em, 
+                                    ValidatorInterface $validator, TagAwareCacheInterface $cachePool, 
+                                    ClientRepository $clientRepository): JsonResponse 
         {
-            // Verification if current_user.id = client.id
-            
-            return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
+            // Verification if the client is the current user
+            $currentUser = $clientRepository->findOneBy(['email'=> (string)$this->getUser()->getUserIdentifier()]);
+            $currentUserId = $currentUser->getId();
+            if ($currentUserId !== $client->getId()) {
+                throw new HttpException(
+                    JsonResponse::HTTP_BAD_REQUEST,
+                    "You can only consult your own client information. Your id is $currentUserId"
+                );
+            }
+            $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
+            if (null !== $newClient->getPassword()) { $client->setPassword($passwordHasher->hashPassword($client, $newClient->getPassword())); }
+            // On vérifie les erreurs
+            $errors = $validator->validate($client);
+            if ($errors->count() > 0) {
+                return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+            }
+            $em->persist($client);
+            $em->flush();
+            $cachePool->invalidateTags(["clientsCache"]);
+            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT); # Response 204 - No content
         }
 }
