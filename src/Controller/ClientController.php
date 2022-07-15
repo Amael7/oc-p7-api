@@ -346,7 +346,7 @@ class ClientController extends AbstractController
             if (null !== $newClient->getCreatedAt()) { $currentClient->setCreatedAt($newClient->getCreatedAt()); }
             if (null !== $newClient->getCompany()) { $currentClient->setCompany($newClient->getCompany()); }
             if (null !== $newClient->getEmail()) { $currentClient->setEmail($newClient->getEmail()); }
-            if (null !== $newClient->getPassword()) { $currentClient->setPassword($passwordHasher->hashPassword($currentClient, $newClient->getPassword())); }
+            // if (null !== $newClient->getPassword()) { $currentClient->setPassword($passwordHasher->hashPassword($currentClient, $newClient->getPassword())); }
             if (null !== $newClient->getCreatedAt()) { $currentClient->setCreatedAt($newClient->getCreatedAt()); }
             // if (null !== $newClient->getRoles()) { $currentClient->setRoles($newClient->getRoles()); }
             // // Récupération de l'ensemble des données envoyées sous forme de tableau
