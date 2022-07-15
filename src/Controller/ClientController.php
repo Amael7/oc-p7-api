@@ -4,27 +4,25 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Entity\Customer;
-use JMS\Serializer\Serializer;
+use OpenApi\Annotations as OA;
 use App\Repository\ClientRepository;
 use App\Repository\CustomerRepository;
 use JMS\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializationContext;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
-use OpenApi\Annotations as OA;
 
 class ClientController extends AbstractController
 {
@@ -87,17 +85,21 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients', name: 'clients', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour voir la liste des clients')]
-    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to see the list of clients')]
+    public function index(ClientRepository $clientRepository, SerializerInterface $serializer, 
+                            Request $request, TagAwareCacheInterface $cachePool): JsonResponse
         {
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
             $idCache = "getAllClients-" . $page . "-" . $limit;
-            $jsonClientsList = $cachePool->get($idCache, function (ItemInterface $item) use ($clientRepository, $page, $limit, $serializer) {
-                $item->tag("clientsCache");
-                $clientsList = $clientRepository->findAllWithPagination($page, $limit);
-                $context = SerializationContext::create()->setGroups(['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']);
-                return $serializer->serialize($clientsList, 'json', $context);
+            $jsonClientsList = $cachePool->get(
+                $idCache,
+                function (ItemInterface $item) use ($clientRepository, $page, $limit, $serializer) 
+                {
+                    $item->tag("clientsCache");
+                    $clientsList = $clientRepository->findAllWithPagination($page, $limit);
+                    $context = SerializationContext::create()->setGroups(['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']);
+                    return $serializer->serialize($clientsList, 'json', $context);
             });
             return new JsonResponse($jsonClientsList, Response::HTTP_OK, [], true);  # Response 200
         }
@@ -158,9 +160,20 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients/{id}', name: 'clientShow', methods: ['GET'])]
-    public function show(Client $client, SerializerInterface $serializer): JsonResponse
+    public function show(Client $client, SerializerInterface $serializer, ClientRepository $clientRepository): JsonResponse
         {
-            $context = SerializationContext::create()->setGroups(['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']);
+            // Verification if the client is the current user
+            $currentUser = $clientRepository->findOneBy(['email'=> (string)$this->getUser()->getUserIdentifier()]);
+            $currentUserId = $currentUser->getId();
+            if ($currentUserId !== $client->getId()) {
+                throw new HttpException(
+                    JsonResponse::HTTP_BAD_REQUEST,
+                    "You can only consult your own client information. Your id is $currentUserId"
+                );
+            }
+            $context = SerializationContext::create()->setGroups(
+                ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']
+            );
             $jsonClient = $serializer->serialize($client, 'json', $context);
             return new JsonResponse($jsonClient, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
@@ -215,8 +228,11 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients', name:"clientCreate", methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un client')]
-    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): JsonResponse 
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to create a client')]
+    public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, 
+                            UrlGeneratorInterface $urlGenerator, 
+                            UserPasswordHasherInterface $passwordHasher, 
+                            ValidatorInterface $validator): JsonResponse 
         {
             $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
             $client = new Client();
@@ -246,7 +262,9 @@ class ClientController extends AbstractController
             }
             $em->persist($client);
             $em->flush();
-            $context = SerializationContext::create()->setGroups(['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']);
+            $context = SerializationContext::create()->setGroups(
+                ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']
+            );
             $jsonClient = $serializer->serialize($client, 'json', $context);
             $location = $urlGenerator->generate('clientShow', ['id' => $client->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return new JsonResponse($jsonClient, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
@@ -317,8 +335,12 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un client')]
-    public function update(Request $request, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, CustomerRepository $customerRepository): JsonResponse 
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to update a client')]
+    public function update(Request $request, SerializerInterface $serializer, 
+                            UserPasswordHasherInterface $passwordHasher, 
+                            Client $currentClient, EntityManagerInterface $em, 
+                            ValidatorInterface $validator, TagAwareCacheInterface $cachePool, 
+                            CustomerRepository $customerRepository): JsonResponse 
         {
             $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
             if (null !== $newClient->getCreatedAt()) { $currentClient->setCreatedAt($newClient->getCreatedAt()); }
@@ -421,12 +443,85 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients/{id}', name: 'clientDestroy', methods: ['DELETE'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un client')]
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a client')]
     public function destroy(Client $client, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
         {
             $cachePool->invalidateTags(["clientsCache"]);
             $em->remove($client);
             $em->flush();
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
+        }
+
+    
+    /**
+     * Update password BileMo's client.
+     * 
+     * * @OA\Response(
+     *     response=204,
+     *     description="Successful operation: Updated",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Client::class, groups={"getClientDetails"}))
+     *     )
+     * )
+     * 
+     * * @OA\Response(
+     *     response=400,
+     *     description="Bad Request: This method is not allowed for this route",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=401,
+     *     description="Unauthorized: Expired JWT Token/JWT Token not found",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=403,
+     *     description="Forbidden: You are not allowed to access to this page",
+     * )
+     * 
+     * * @OA\Response(
+     *     response=404,
+     *     description="Object not found: Invalid route or resource ID",
+     * )
+     * 
+     * @OA\RequestBody(
+     *     @Model(type=Client::class)
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="id",
+     *     required= true,
+     *     in="path",
+     *     description="The Client unique identifier.",
+     *     @OA\Schema(type="int")
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="Authorization",
+     *     required= true,
+     *     in="header",
+     *     description="Bearer JWT Token.",
+     *     @OA\Schema(type="string")
+     * )
+     * 
+     * @OA\Tag(name="Clients")
+     *
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param UserPasswordHasherInterface $passwordHasher
+     * @param Client $currentClient
+     * @param EntityManagerInterface $em
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cachePool
+     * @param CustomerRepository $customerRepository
+     * @return JsonResponse
+     */
+    #[Route('/api/clients/{id}/password', name: 'clientPassword', methods: ['Put'])]
+    public function updatePassword(Request $request, SerializerInterface $serializer, UserPasswordHasherInterface $passwordHasher, Client $currentClient, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, CustomerRepository $customerRepository): JsonResponse 
+        {
+            // Verification if current_user.id = client.id
+            
             return new JsonResponse(null, Response::HTTP_NO_CONTENT); # Response 204 - No content
         }
 }
