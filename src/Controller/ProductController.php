@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Image;
 use App\Entity\Product;
 use App\Entity\Configuration;
-use JMS\Serializer\Serializer;
 use App\Repository\ImageRepository;
 use App\Repository\ProductRepository;
 use JMS\Serializer\SerializerInterface;
@@ -22,10 +21,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Annotations as OA;
 
 class ProductController extends AbstractController
@@ -210,7 +207,7 @@ class ProductController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/products', name:"productCreate", methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un produit')]
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to create a product')]
     public function create(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse 
         {
             $newProduct = $serializer->deserialize($request->getContent(), Product::class, 'json');
@@ -331,7 +328,7 @@ class ProductController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/products/{id}', name: 'productUpdate', methods: ['PUT'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour mettre à jour un produit')]
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to update a product')]
     public function update(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, ValidatorInterface $validator, TagAwareCacheInterface $cachePool, ConfigurationRepository $configurationRepository, ImageRepository $imageRepository): JsonResponse 
         {
             $newProduct = $serializer->deserialize($request->getContent(), Product::class, 'json');
@@ -470,7 +467,7 @@ class ProductController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/products/{id}', name: 'productDestroy', methods: ['DELETE'])]
-    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un produit')]
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a product')]
     public function destroy(Product $product, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
         {
             $cachePool->invalidateTags(["productsCache"]);
