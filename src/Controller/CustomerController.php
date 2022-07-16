@@ -227,7 +227,6 @@ class CustomerController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/customers', name:"customerCreate", methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to create a customer')]
     public function create(Request $request, SerializerInterface $serializer, 
                             EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, 
                             ClientRepository $clientRepository, ValidatorInterface $validator): JsonResponse 
@@ -332,7 +331,6 @@ class CustomerController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/customers/{id}', name: 'customerUpdate', methods: ['PUT'])]
-    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to update a customer')]
     public function update(Request $request, SerializerInterface $serializer,
                             Customer $currentCustomer, EntityManagerInterface $em, 
                             ClientRepository $clientRepository, ValidatorInterface $validator, 
@@ -347,28 +345,27 @@ class CustomerController extends AbstractController
             if (in_array($currentUser->getId(), $arr) !== true) {
                 throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "this customer isn't related to you");
             }
-
             $newCustomer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
             if (null !== $newCustomer->getCreatedAt()) { $currentCustomer->setCreatedAt($newCustomer->getCreatedAt()); }
             if (null !== $newCustomer->getEmail()) { $currentCustomer->setEmail($newCustomer->getEmail()); }
             if (null !== $newCustomer->getLastName()) { $currentCustomer->setLastName($newCustomer->getLastName()); }
             if (null !== $newCustomer->getFirstName()) { $currentCustomer->setFirstName($newCustomer->getFirstName()); }
-            // On vérifie les erreurs
+            // Errors Check
             $errors = $validator->validate($currentCustomer);
             if ($errors->count() > 0) {
                 // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
-            // Récupération de l'ensemble des données envoyées sous forme de tableau
+            // Get the content from the request
             $content = $request->toArray();
-            // Récupération de l'idClients pour lier des clients. S'il n'est pas défini, alors on null par défaut.
+            // Recuperation of idClients to link the customer to the clients.
             $idClients = $content['idClients'] ?? null;
             if (isset($idClients)) {
                 foreach($idClients as $idClient) {
                     $currentCustomer->setClient($clientRepository->find($idClient));
                 }
             }
-            // Récupération de removeIdClients pour supprimer la liaison avec des clients. S'il n'est pas défini, alors on null par défaut.
+            // Recuperation of removeIdClients to delete the link with the clients.
             $removeIdClients = $content['removeIdClients'] ?? null;
             if (isset($removeIdClients)) {
                 foreach($removeIdClients as $removeIdClient) {
@@ -438,7 +435,6 @@ class CustomerController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/customers/{id}', name: 'customerDestroy', methods: ['DELETE'])]
-    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to delete a customer')]
     public function destroy(Customer $customer, ClientRepository $clientRepository, 
                             EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse 
         {
@@ -451,7 +447,6 @@ class CustomerController extends AbstractController
             if (in_array($currentUser->getId(), $arr) !== true) {
                 throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "this customer isn't related to you");
             }
-
             $cachePool->invalidateTags(["customersCache"]);
             $em->remove($customer);
             $em->flush();

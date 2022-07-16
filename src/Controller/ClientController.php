@@ -160,17 +160,9 @@ class ClientController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/api/clients/{id}', name: 'clientShow', methods: ['GET'])]
-    public function show(Client $client, SerializerInterface $serializer, ClientRepository $clientRepository): JsonResponse
+    #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to see the details of a clients')]
+    public function show(Client $client, SerializerInterface $serializer): JsonResponse
         {
-            // Verification if the client is the current user
-            $currentUser = $clientRepository->findOneBy(['email'=> (string)$this->getUser()->getUserIdentifier()]);
-            $currentUserId = $currentUser->getId();
-            if ($currentUserId !== $client->getId()) {
-                throw new HttpException(
-                    JsonResponse::HTTP_BAD_REQUEST,
-                    "You can only consult your own client information. Your id is $currentUserId"
-                );
-            }
             $context = SerializationContext::create()->setGroups(
                 ['getClientDetails', 'getCustomersFromClient', 'getCustomerDetails']
             );
@@ -236,15 +228,12 @@ class ClientController extends AbstractController
         {
             $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
             $client = new Client();
-            if (null !== $newClient->getCreatedAt()) { $client->setCreatedAt($newClient->getCreatedAt()); }
             if (null !== $newClient->getCompany()) { $client->setCompany($newClient->getCompany()); }
             if (null !== $newClient->getEmail()) { $client->setEmail($newClient->getEmail()); }
             if (null !== $newClient->getPassword()) { $client->setPassword($passwordHasher->hashPassword($client, $newClient->getPassword())); }
-            if (null !== $newClient->getCreatedAt()) { $client->setCreatedAt($newClient->getCreatedAt()); }
-            if (null !== $newClient->getRoles()) { $client->setRoles($newClient->getRoles()); }
-            // // Récupération de l'ensemble des données envoyées sous forme de tableau
+            // Get the request data
             $content = $request->toArray();
-            $customers = $content['customers'];
+            $customers = $content['customers'] ?? null;
             if (isset($customers)) { 
                 foreach($customers as $customer) {
                     $newCustomer = new Customer();
@@ -254,10 +243,9 @@ class ClientController extends AbstractController
                     $client->addCustomer($newCustomer);
                 }
             }
-            // On vérifie les erreurs
+            // Errors Check
             $errors = $validator->validate($client);
             if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
             $em->persist($client);
@@ -337,23 +325,16 @@ class ClientController extends AbstractController
     #[Route('/api/clients/{id}', name: 'clientUpdate', methods: ['PUT'])]
     #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to update a client')]
     public function update(Request $request, SerializerInterface $serializer, 
-                            UserPasswordHasherInterface $passwordHasher, 
                             Client $currentClient, EntityManagerInterface $em, 
-                            ValidatorInterface $validator, TagAwareCacheInterface $cachePool, 
-                            CustomerRepository $customerRepository): JsonResponse 
+                            ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
         {
             $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
-            if (null !== $newClient->getCreatedAt()) { $currentClient->setCreatedAt($newClient->getCreatedAt()); }
             if (null !== $newClient->getCompany()) { $currentClient->setCompany($newClient->getCompany()); }
             if (null !== $newClient->getEmail()) { $currentClient->setEmail($newClient->getEmail()); }
-            // if (null !== $newClient->getPassword()) { $currentClient->setPassword($passwordHasher->hashPassword($currentClient, $newClient->getPassword())); }
-            if (null !== $newClient->getCreatedAt()) { $currentClient->setCreatedAt($newClient->getCreatedAt()); }
-            // if (null !== $newClient->getRoles()) { $currentClient->setRoles($newClient->getRoles()); }
-            // // Récupération de l'ensemble des données envoyées sous forme de tableau
+            // Get Request Data
             $content = $request->toArray();
-            // $customers = $content['customers'];
-            if (isset($content['customers'])) { 
-                $customers = $content['customers'];
+            $customers = $content['customers'] ?? null;
+            if (isset($customers)) { 
                 foreach($customers as $customer) {
                     $newCustomer = new Customer();
                     $newCustomer->setEmail($customer['email'])
@@ -362,24 +343,9 @@ class ClientController extends AbstractController
                     $currentClient->addCustomer($newCustomer);
                 }
             }
-            // Récupération de l'idCustomers pour lier des customers. S'il n'est pas défini, alors on null par défaut.
-            $idCustomers = $content['idCustomers'] ?? null;
-            if (isset($idCustomers)) {
-                foreach($idCustomers as $idCustomer) {
-                    $currentClient->setCustomer($customerRepository->find($idCustomer));
-                }
-            }
-            // Récupération de removeIdCustomers pour supprimer la liaison avec des Customers. S'il n'est pas défini, alors on null par défaut.
-            $removeIdCustomers = $content['removeIdCustomers'] ?? null;
-            if (isset($removeIdCustomers)) {
-                foreach($removeIdCustomers as $removeIdCustomer) {
-                    $currentClient->removeCustomer($customerRepository->find($removeIdCustomer));
-                }
-            }
-            // On vérifie les erreurs
+            // Errors Check
             $errors = $validator->validate($currentClient);
             if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
             $em->persist($currentClient);
@@ -536,7 +502,7 @@ class ClientController extends AbstractController
             }
             $newClient = $serializer->deserialize($request->getContent(), Client::class, 'json');
             if (null !== $newClient->getPassword()) { $client->setPassword($passwordHasher->hashPassword($client, $newClient->getPassword())); }
-            // On vérifie les erreurs
+            // Errors Check
             $errors = $validator->validate($client);
             if ($errors->count() > 0) {
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);

@@ -17,7 +17,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -227,7 +226,6 @@ class ProductController extends AbstractController
         {
             $newProduct = $serializer->deserialize($request->getContent(), Product::class, 'json');
             $product = new Product();
-            if (null !== $newProduct->getCreatedAt()) { $product->setCreatedAt($newProduct->getCreatedAt()); }
             if (null !== $newProduct->getManufacturer()) { $product->setManufacturer($newProduct->getManufacturer()); }
             if (null !== $newProduct->getName()) { $product->setName($newProduct->getName()); }
             if (null !== $newProduct->getDescription()) { $product->setDescription($newProduct->getDescription()); }
@@ -240,15 +238,14 @@ class ProductController extends AbstractController
             if (null !== $newProduct->getHeight()) { $product->setHeight($newProduct->getHeight()); }
             if (null !== $newProduct->getWeight()) { $product->setWeight($newProduct->getWeight()); }
             if (null !== $newProduct->getDas()) { $product->setDas($newProduct->getDas()); }
-            // On vérifie les erreurs
+            // Errors Check
             $errors = $validator->validate($product);
             if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
-            // Récupération de l'ensemble des données envoyées sous forme de tableau
+            // Get request data
             $content = $request->toArray();
-            // Récupération des configurations. S'il n'est pas défini, alors on met -1 par défaut.
+            // Get configurations.
             $configurations = $content['configurations'] ?? null;
             if (isset($configurations)) {
                 foreach($configurations as $configuration) {
@@ -351,12 +348,9 @@ class ProductController extends AbstractController
     #[IsGranted('ROLE_ADMIN', message: 'You do not have sufficient rights to update a product')]
     public function update(Request $request, SerializerInterface $serializer, 
                             Product $currentProduct, EntityManagerInterface $em, 
-                            ValidatorInterface $validator, TagAwareCacheInterface $cachePool, 
-                            ConfigurationRepository $configurationRepository, 
-                            ImageRepository $imageRepository): JsonResponse 
+                            ValidatorInterface $validator, TagAwareCacheInterface $cachePool): JsonResponse 
         {
             $newProduct = $serializer->deserialize($request->getContent(), Product::class, 'json');
-            if (null !== $newProduct->getCreatedAt()) { $currentProduct->setCreatedAt($newProduct->getCreatedAt()); }
             if (null !== $newProduct->getManufacturer()) { $currentProduct->setManufacturer($newProduct->getManufacturer()); }
             if (null !== $newProduct->getName()) { $currentProduct->setName($newProduct->getName()); }
             if (null !== $newProduct->getDescription()) { $currentProduct->setDescription($newProduct->getDescription()); }
@@ -369,15 +363,14 @@ class ProductController extends AbstractController
             if (null !== $newProduct->getHeight()) { $currentProduct->setHeight($newProduct->getHeight()); }
             if (null !== $newProduct->getWeight()) { $currentProduct->setWeight($newProduct->getWeight()); }
             if (null !== $newProduct->getDas()) { $currentProduct->setDas($newProduct->getDas()); }
-            // On vérifie les erreurs
+            // Errors check
             $errors = $validator->validate($currentProduct);
             if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
-            // Récupération de l'ensemble des données envoyées sous forme de tableau
+            // Get request data
             $content = $request->toArray();
-            // Récupération des configurations. S'il n'est pas défini, alors on met -1 par défaut.
+            // Get configurations.
             $configurations = $content['configurations'] ?? null;
             if (isset($configurations)) {
                 foreach($configurations as $configuration) {
@@ -395,37 +388,6 @@ class ProductController extends AbstractController
                             $em->persist($newImage);
                             $config->addImage($newImage);
                         }
-                    }
-                }
-            }
-            // Récupération de idConfigurations pour supprimer la liaison avec des configurations. S'il n'est pas défini, alors on null par défaut.
-            $dataConfigurations = $content['dataConfigurations'] ?? null;
-            if (isset($dataConfigurations)) {
-                foreach($dataConfigurations as $dataConfiguration) {
-                    $idConfiguration = $dataConfiguration['id'] ?? null;
-                    $config = $configurationRepository->find($idConfiguration);
-                    if (null === $config) { 
-                        throw new HttpException(JsonResponse::HTTP_NOT_FOUND, "l'id configuration $idConfiguration n'existe pas");
-                    }
-                    $capacity = $dataConfiguration['capacity'] ?? null;
-                    $color = $dataConfiguration['color'] ?? null;
-                    $price = $dataConfiguration['price'] ?? null;
-                    if (null !== $capacity) { $config->setCapacity($capacity); }
-                    if (null !== $color) { $config->setColor($color); }
-                    if (null !== $price) { $config->setPrice($price); }
-                    if (null !== $config) { $em->persist($config); }
-                    // Récupération de removeIdImages pour supprimer la liaison avec des images. S'il n'est pas défini, alors on null par défaut.
-                    $removeIdImages = $dataConfiguration['removeIdImages'] ?? null;
-                    if (isset($removeIdImages)) {
-                        foreach($removeIdImages as $removeIdImage) {
-                            $image = $imageRepository->find($removeIdImage);
-                            $config->removeImage($image);
-                        }
-                    }
-                    // Récupération de remove pour supprimer la liaison avec des configurations. S'il n'est pas défini, alors on null par défaut.
-                    $deleteConfig = $dataConfiguration['remove'] ?? null;
-                    if ($deleteConfig === true) { 
-                        $currentProduct->removeConfiguration($config); 
                     }
                 }
             }
