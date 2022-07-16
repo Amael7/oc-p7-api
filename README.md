@@ -35,6 +35,6 @@ Nom du Projet : Créez un web service exposant une API
 
          php bin/console doctrine:fixtures:load
          
-6.Lancer les serveur :
+6.Lancer le serveur :
   
          symfony serve
