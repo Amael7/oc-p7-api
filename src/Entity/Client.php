@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
  *          "clientShow",
  *          parameters = { "id" = "expr(object.getId())" }
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getClientDetails")
+ *      exclusion = @Hateoas\Exclusion(groups="getClientDetails", excludeIf = "expr(not is_granted('ROLE_ADMIN'))")
  * )
  * 
  * * * @Hateoas\Relation(
@@ -61,26 +61,25 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Le nom de la companie est obligatoire.")]
-    #[Assert\Length(min: 3, max:255, minMessage: "Le nom de la companie doit faire au moins {{ limit }} caractères", maxMessage: "Le nom de la companie ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\NotBlank(message: "The name of the company is required.")]
+    #[Assert\Length(min: 3, max:255, minMessage: "The name of the company must be at least {{ limit }} characters.", maxMessage: "The name of the company can't be more than {{ limit }} characters.")]
     #[Groups(['getClientDetails'])]
     private $company;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
-    #[Assert\NotBlank(message: "L'émail est obligatoire.")]
-    #[Assert\Length(max:255, maxMessage: "L'émail ne peut pas faire plus de {{ limit }} caractères")]
-    #[Assert\Email(message: "L'email rentré doit obligatoire être un email valide.")]
+    #[Assert\NotBlank(message: "Email is required.")]
+    #[Assert\Length(max:255, maxMessage: "The email can't be more than {{ limit }} characters.")]
+    #[Assert\Email(message: "The email has to be a valid email")]
     #[Groups(['getClientDetails'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.")]
-    #[Assert\Length(min: 6, max:255, minMessage: "Le mot de passe doit faire au moins {{ limit }} caractères", maxMessage: "Le mot de passe ne peut pas faire plus de {{ limit }} caractères")]
-    #[Assert\NotCompromisedPassword(message: "Le mot de passe ne doit pas etre compromis.")]
+    #[Assert\NotBlank(message: "The password is required.")]
+    #[Assert\Length(min: 6, max:255, minMessage: "The password must be at least {{ limit }} characters.", maxMessage: "The password can't be more than {{ limit }} characters.")]
+    #[Assert\NotCompromisedPassword(message: "The password has to be valid.")]
     private $password;
 
     #[ORM\Column(type: 'datetime')]
-    #[Assert\NotNull(message: "La date de création est obligatoire.")]
     #[Groups(['getClientDetails'])]
     private $createdAt;
 
