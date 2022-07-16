@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
  *          "clientShow",
  *          parameters = { "id" = "expr(object.getId())" }
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getClientDetails")
+ *      exclusion = @Hateoas\Exclusion(groups="getClientDetails", excludeIf = "expr(not is_granted('ROLE_ADMIN'))")
  * )
  * 
  * * * @Hateoas\Relation(

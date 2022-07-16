@@ -14,6 +14,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Hateoas\Relation(
+ *      "list",
+ *      href = @Hateoas\Route(
+ *          "products"
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups="getProductDetails"),
+ * )
+ * 
+ * @Hateoas\Relation(
  *      "self",
  *      href = @Hateoas\Route(
  *          "productShow",

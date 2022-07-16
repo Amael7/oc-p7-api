@@ -13,6 +13,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @Hateoas\Relation(
+ *      "list",
+ *      href = @Hateoas\Route(
+ *          "customers"
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails")
+ * )
+ * 
+ * @Hateoas\Relation(
  *      "self",
  *      href = @Hateoas\Route(
  *          "customerShow",
@@ -27,7 +35,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "customerCreate",
  *          parameters = {},
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails", excludeIf = "expr(not is_granted('ROLE_ADMIN'))"),
+ *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails"),
  * )
  * 
  * * @Hateoas\Relation(
@@ -36,7 +44,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "customerDestroy",
  *          parameters = { "id" = "expr(object.getId())" },
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails", excludeIf = "expr(not is_granted('ROLE_ADMIN'))"),
+ *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails"),
  * )
  *
  * @Hateoas\Relation(
@@ -45,7 +53,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          "customerUpdate",
  *          parameters = { "id" = "expr(object.getId())" },
  *      ),
- *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails", excludeIf = "expr(not is_granted('ROLE_ADMIN'))"),
+ *      exclusion = @Hateoas\Exclusion(groups="getCustomerDetails"),
  * )
  *
  */
@@ -59,26 +67,25 @@ class Customer
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "L'email est obligatoire.")]
-    #[Assert\Length(max:255, maxMessage: "L'email ne peut pas faire plus de {{ limit }} caractères")]
-    #[Assert\Email(message: "L'email rentré doit obligatoire être un email valide.")]
+    #[Assert\NotBlank(message: "The email is required.")]
+    #[Assert\Length(max:255, maxMessage: "The email can't be more than {{ limit }} characteres")]
+    #[Assert\Email(message: "The email has to be valid.")]
     #[Groups(['getCustomerDetails'])]
     private $email;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Le nom de famille est obligatoire.")]
-    #[Assert\Length(min: 2, max:255, minMessage: "Le nom de famille doit faire au moins {{ limit }} caractères", maxMessage: "Le nom de famille ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\NotBlank(message: "The lastName is required.")]
+    #[Assert\Length(min: 2, max:255, minMessage: "The lastName must be at least {{ limit }} characteres", maxMessage: "The lastName can't be more than {{ limit }} characteres")]
     #[Groups(['getCustomerDetails'])]
     private $lastName;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(message: "Le prénom est obligatoire.")]
-    #[Assert\Length(min: 3, max:255, minMessage: "Le prénom doit faire au moins {{ limit }} caractères", maxMessage: "Le prénom ne peut pas faire plus de {{ limit }} caractères")]
+    #[Assert\NotBlank(message: "The firstName is required.")]
+    #[Assert\Length(min: 3, max:255, minMessage: "The firstName must be at least {{ limit }} characteres", maxMessage: "The firstName can't be more than {{ limit }} characteres")]
     #[Groups(['getCustomerDetails'])]
     private $firstName;
 
     #[ORM\Column(type: 'datetime')]
-    #[Assert\NotNull(message: "La date de création est obligatoire.")]
     #[Groups(['getCustomerDetails'])]
     private $createdAt;
 

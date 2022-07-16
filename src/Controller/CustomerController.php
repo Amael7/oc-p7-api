@@ -19,7 +19,6 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CustomerController extends AbstractController
@@ -86,7 +85,6 @@ class CustomerController extends AbstractController
                             SerializerInterface $serializer, Request $request, 
                             TagAwareCacheInterface $cachePool): JsonResponse
         {
-            // Get only customers related to the current user client
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
             $idCache = "getAllCustomers-" . $page . "-" . $limit;
@@ -97,7 +95,7 @@ class CustomerController extends AbstractController
                     $item->tag("customersCache");
                     $currentUser = $clientRepository->findOneBy(['email'=> (string)$this->getUser()->getUserIdentifier()]);
                     $customersList = $customerRepository->findAllWithPagination($page, $limit, $currentUser);
-                    $context = SerializationContext::create()->setGroups(['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']);
+                    $context = SerializationContext::create()->setGroups(['getCustomerDetails']);
                     return $serializer->serialize($customersList, 'json', $context);
             });
             return new JsonResponse($jsoncustomersList, Response::HTTP_OK, [], true);  # Response 200
@@ -170,9 +168,7 @@ class CustomerController extends AbstractController
             if (in_array($currentUser->getId(), $arr) !== true) {
                 throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "this customer isn't related to you");
             }
-            $context = SerializationContext::create()->setGroups(
-                ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']
-            );
+            $context = SerializationContext::create()->setGroups(['getCustomerDetails']);
             $jsonCustomer = $serializer->serialize($customer, 'json', $context);
             return new JsonResponse($jsonCustomer, Response::HTTP_OK, ['accept' => 'json'], true);  # Response 200 if OK and 404 if not found
         }
@@ -233,35 +229,20 @@ class CustomerController extends AbstractController
         {
             $newCustomer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
             $customer = new Customer();
-            if (null !== $newCustomer->getCreatedAt()) { $customer->setCreatedAt($newCustomer->getCreatedAt()); }
             if (null !== $newCustomer->getEmail()) { $customer->setEmail($newCustomer->getEmail()); }
             if (null !== $newCustomer->getLastName()) { $customer->setLastName($newCustomer->getLastName()); }
             if (null !== $newCustomer->getFirstName()) { $customer->setFirstName($newCustomer->getFirstName()); }
-
-            // Get the Customer created to be related to the current user client
+            // Link the customer to the current client
             $currentUser = $clientRepository->findOneBy(['email'=> (string)$this->getUser()->getUserIdentifier()]);
             $customer->setClient($currentUser);
-
-            // On vérifie les erreurs
+            // Errors Check
             $errors = $validator->validate($customer);
             if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
-            }
-            // Récupération de l'ensemble des données envoyées sous forme de tableau
-            $content = $request->toArray();
-            // Récupération de l'idClients. S'il n'est pas défini, alors on met -1 par défaut.
-            $idClients = $content['idClients'] ?? null;
-            if (isset($idClients)) {
-                foreach($idClients as $idClient) {
-                    $customer->setClient($clientRepository->find($idClient));
-                }
             }
             $em->persist($customer);
             $em->flush();
-            $context = SerializationContext::create()->setGroups(
-                ['getCustomerDetails', 'getClientsFromCustomer', 'getClientDetails']
-            );
+            $context = SerializationContext::create()->setGroups(['getCustomerDetails']);
             $jsonCustomer = $serializer->serialize($customer, 'json', $context);
             $location = $urlGenerator->generate('customerShow', ['id' => $customer->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
             return new JsonResponse($jsonCustomer, Response::HTTP_CREATED, ["Location" => $location], true); # Response 201 - Created
@@ -346,31 +327,13 @@ class CustomerController extends AbstractController
                 throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "this customer isn't related to you");
             }
             $newCustomer = $serializer->deserialize($request->getContent(), Customer::class, 'json');
-            if (null !== $newCustomer->getCreatedAt()) { $currentCustomer->setCreatedAt($newCustomer->getCreatedAt()); }
             if (null !== $newCustomer->getEmail()) { $currentCustomer->setEmail($newCustomer->getEmail()); }
             if (null !== $newCustomer->getLastName()) { $currentCustomer->setLastName($newCustomer->getLastName()); }
             if (null !== $newCustomer->getFirstName()) { $currentCustomer->setFirstName($newCustomer->getFirstName()); }
             // Errors Check
             $errors = $validator->validate($currentCustomer);
             if ($errors->count() > 0) {
-                // throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, $errors);
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
-            }
-            // Get the content from the request
-            $content = $request->toArray();
-            // Recuperation of idClients to link the customer to the clients.
-            $idClients = $content['idClients'] ?? null;
-            if (isset($idClients)) {
-                foreach($idClients as $idClient) {
-                    $currentCustomer->setClient($clientRepository->find($idClient));
-                }
-            }
-            // Recuperation of removeIdClients to delete the link with the clients.
-            $removeIdClients = $content['removeIdClients'] ?? null;
-            if (isset($removeIdClients)) {
-                foreach($removeIdClients as $removeIdClient) {
-                    $currentCustomer->removeClient($clientRepository->find($removeIdClient));
-                }
             }
             $em->persist($currentCustomer);
             $em->flush();
