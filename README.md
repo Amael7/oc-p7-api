@@ -7,6 +7,7 @@ Nom du Projet : Créez un web service exposant une API
 
 ### Version du projet
 
+- Symfony 6.1
 - PHP 8.0.0
 - mysql 8.0.28
 - Symfony CLI version 5.3.0
