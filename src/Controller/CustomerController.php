@@ -166,7 +166,7 @@ class CustomerController extends AbstractController
                 array_push($arr, $client->getId());
             }
             if (in_array($currentUser->getId(), $arr) !== true) {
-                throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "this customer isn't related to you");
+                throw new HttpException(JsonResponse::HTTP_FORBIDDEN, "this customer isn't related to you");
             }
             $context = SerializationContext::create()->setGroups(['getCustomerDetails']);
             $jsonCustomer = $serializer->serialize($customer, 'json', $context);
