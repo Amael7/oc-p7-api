@@ -12,7 +12,6 @@ Nom du Projet : Créez un web service exposant une API
 - mysql 8.0.28
 - Symfony CLI version 5.3.0
 - Composer version 2.2.5
-- Node v12.22.11
 
 ### Installation
 
